@@ -476,10 +476,10 @@ Rk_nom = Rk*pie*exp(EPi);
 end;
 shocks;
 %if sigma_epsiA != 0
-%    var eps_a; stderr 1;
+    var eps_a; stderr 1;
 %end
 %if sigma_epsiK != 0
-    var ksi; stderr 1;
+%    var ksi; stderr 1;
 %end
 %if sigma_epsiInt != 0
 %    var eps_m; stderr 1;
