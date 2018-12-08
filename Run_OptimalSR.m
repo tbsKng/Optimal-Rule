@@ -88,6 +88,7 @@ Robust      = 0;
 comp_static = 0;
 run_corr    = 0;
 pol_front   = 0;
+determinacy = 1;
 
 %% Run Search for Optimal Coefficients
 
@@ -207,246 +208,70 @@ if gridsearch==1
     save optimal_coeff_pw param_opt M
     %save optimal_coeff_pw_Rho_Pi param_opt M
     
-    %%%%%%%%%%%%%%%%%
-    %% Determinacy %%
-    %%%%%%%%%%%%%%%%%
+else
+    disp('No grid search was running!')
+end
+
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+disp('RUN Determinancy Check!')
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+
+if determinacy==1
     
-    kappa_pie_grid  = -1.5:0.25:5;
-    kappa_pieW_grid = -1.5:0.25:5;
-    kappa_y_grid    = -1.5:0.25:5;
+    kappa_pie_grid  = -1.5:0.125:5;
+    kappa_pieW_grid = -1.5:0.125:5;
+    kappa_y_grid    = -1.5:0.125:5;
     rho_grid        = 0:0.1:1;
-    lambda_grid     = 0.1:0.1:0.6;
+    lambda_grid     = 0.1:0.05:0.6;
     
-    welfare_grid_rho    = zeros(length(lambda_grid),length(rho_grid));
-    welfare_grid_Pie    = zeros(length(lambda_grid),length(kappa_pie_grid));
-    welfare_grid_PieW   = zeros(length(lambda_grid),length(kappa_pieW_grid));
-    welfare_grid_y      = zeros(length(lambda_grid),length(kappa_y_grid));
-    
-    welfgrid_pie_Norm   = zeros(length(lambda_grid),length(kappa_pie_grid));
-    welfgrid_pieW_Norm  = zeros(length(lambda_grid),length(kappa_pieW_grid));
-    welfgrid_rho_Norm   = zeros(length(lambda_grid),length(rho_grid));
-    welfgrid_y_Norm     = zeros(length(lambda_grid),length(kappa_y_grid));
-    
-   % pause;
-    
-    indeterminacy=zeros(length(kappa_pie_grid),length(kappa_pieW_grid),length(kappa_y_grid),length(rho_grid));
-    %welfare_grid=zeros(length(kappa_pie_grid),length(kappa_pieW_grid),length(rho_grid),length(kappa_y_grid));
-    
-    
+    indeterminacy_lambda_pie   = zeros(length(lambda_grid),length(kappa_pie_grid));
+    indeterminacy_lambda_rho   = zeros(length(lambda_grid),length(rho_grid));
+    indeterminacy_lambda_pieW  = zeros(length(lambda_grid),length(kappa_pieW_grid));
+    indeterminacy_lambda_y     = zeros(length(lambda_grid),length(kappa_y_grid));
+
+       
     save('params','irf_plot','-append');
     dynare GK_Nom_CapU noclearall
     iter = 0;
     
     % Determinacy Plots
     
-    for k=1:length(kappa_pie_grid)
-        kappa_pie=kappa_pie_grid(k);
-        for kk=1:length(kappa_pieW_grid)
-            kappa_pieW=kappa_pieW_grid(kk);
-            for kkk=1:length(rho_grid)
-                rho=rho_grid(kkk);
-                for kkkk=1:length(kappa_y_grid)
-                    kappa_y = kappa_y_grid(kkkk);
-                    save('params','kappa_pie','kappa_pieW','rho','kappa_y','-append');
-                    clear M_ oo_
-                    try
-                        GK_Nom_CapU
-                        indeterminacy(k,kk,kkk,kkkk) = 0;
-                    catch
-                        indeterminacy(k,kk,kkk,kkkk) = 1;
-                    end
-                    iter= iter+1;
-                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)*length(rho_grid))*length(kappa_y_grid))
-                   end;
-            end;
-        end;
-    end;
+%     for k=1:length(kappa_pie_grid)
+%         kappa_pie=kappa_pie_grid(k);
+%         for kk=1:length(kappa_pieW_grid)
+%             kappa_pieW=kappa_pieW_grid(kk);
+%             for kkk=1:length(rho_grid)
+%                 rho=rho_grid(kkk);
+%                 for kkkk=1:length(kappa_y_grid)
+%                     kappa_y = kappa_y_grid(kkkk);
+%                     save('params','kappa_pie','kappa_pieW','rho','kappa_y','-append');
+%                     clear M_ oo_
+%                     try
+%                         GK_Nom_CapU
+%                         indeterminacy(k,kk,kkk,kkkk) = 0;
+%                     catch
+%                         indeterminacy(k,kk,kkk,kkkk) = 1;
+%                     end
+%                     iter= iter+1;
+%                     fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)*length(rho_grid))*length(kappa_y_grid))
+%                    end
+%             end
+%         end
+%     end
     
     
-    %     %dynare  GK_Nom_CapU
-    %     iter = 0;
-    %     %load paramsBench.mat
-    %     for k=1:length(lambda_grid)
-    %         lambda = lambda_grid(k);
-    %         %lambda = 0.37;
-    %         for kk = 1:length(kappa_pie_grid)
-    %             kappa_pie   = kappa_pie_grid(kk);
-    %             kappa_pieW  = 0;
-    %             kappa_y     = 0;
-    %             kappa_prem  = 0;
-    %             rho         = 0;
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             [ys,check]  = CapU_steadystate;
-    %             K_ss        = ys(1);
-    %             b           = ys(55);
-    %             delta_c     = ys(56);
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             try
-    %                 GK_Nom_CapU
-    %                 W_pos=strmatch('Wf',M_.endo_names,'exact');
-    %                 welfare_grid_Pie(k,kk)=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
-    %             catch
-    %                 disp('Blanchard Kahn condition not fulfilled!')
-    %             end
-    %             iter= iter+1;
-    %             fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(lambda_grid)))
-    %             %clear global
-    %         end
-    %         welfgrid_pie_Norm(k,:) = (welfare_grid_Pie(k,:)-min(welfare_grid_Pie(k,:)))./abs(min(welfare_grid_Pie(k,:)));
-    %     end
-    %
-    %     iter = 0;
-    %     for k=1:length(lambda_grid)
-    %         lambda = lambda_grid(k);
-    %         for kk = 1:length(rho_grid)
-    %             kappa_pie   = 0;
-    %             kappa_pieW  = 1.5;
-    %             kappa_y     = 0;
-    %             kappa_prem  = 0;
-    %             rho         = rho_grid(kk);
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             [ys,check]  = CapU_steadystate;
-    %             K_ss        = ys(1);
-    %             b           = ys(55);
-    %             delta_c     = ys(56);
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             GK_Nom_CapU
-    %             W_pos=strmatch('Wf',M_.endo_names,'exact');
-    %             welfare_grid_rho(k,kk)=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
-    %             iter= iter+1;
-    %             fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(lambda_grid)))
-    %             %clear global
-    %         end
-    %         welfgrid_rho_Norm(k,:) = (welfare_grid_rho(k,:)-min(welfare_grid_rho(k,:)))./abs(min(welfare_grid_rho(k,:)));
-    %     end
-    %
-    %
-    %     %    iter = 0;
-    %     %     for k = 1:length(rho_grid)
-    %     %         rho = rho_grid(k);
-    %     %         kappa_pie   = 1.5;
-    %     %         kappa_pieW  = 0;
-    %     %         kappa_y     = 0;
-    %     %         save('params','K_ss','lambda','b','delta_c','kappa_pie','kappa_pieW','kappa_y','rho','irf_plot','-append');
-    %     %         [ys,check]  = CapU_steadystate;
-    %     %         K_ss        = ys(1);
-    %     %         b           = ys(55);
-    %     %         delta_c     = ys(56);
-    %     %         save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','rho','irf_plot','-append');
-    %     %         GK_Nom_CapU
-    %     %         W_pos=strmatch('Wf',M_.endo_names,'exact');
-    %     %         welfare_grid_Rho(k)=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
-    %     %     end
-    %     %
-    %
-    %     iter = 0;
-    %     for k=1:length(lambda_grid)
-    %         lambda = lambda_grid(k);
-    %         for kk = 1:length(kappa_pieW_grid)
-    %             kappa_pie   = 0;
-    %             kappa_pieW  = kappa_pieW_grid(kk);
-    %             kappa_y     = 0;
-    %             kappa_prem  = 0;
-    %             rho         = 0;
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             [ys,check]  = CapU_steadystate;
-    %             K_ss        = ys(1);
-    %             b           = ys(55);
-    %             delta_c     = ys(56);
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             GK_Nom_CapU
-    %             W_pos=strmatch('Wf',M_.endo_names,'exact');
-    %             welfare_grid_PieW(k,kk)=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
-    %             iter= iter+1;
-    %             fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pieW_grid)*length(lambda_grid)))
-    %             %clear global
-    %         end
-    %         welfgrid_pieW_Norm(k,:) = (welfare_grid_PieW(k,:)-min(welfare_grid_PieW(k,:)))./abs(min(welfare_grid_PieW(k,:)));
-    %     end
-    %
-    %
-    %     iter = 0;
-    %     for k=1:length(lambda_grid)
-    %         lambda = lambda_grid(k);
-    %         for kk = 1:length(kappa_y_grid)
-    %             kappa_pie   = 1.5;
-    %             kappa_pieW  = 0;
-    %             kappa_y     = kappa_y_grid(kk);
-    %             kappa_prem  = 0;
-    %             rho         = 0;
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             [ys,check]  = CapU_steadystate;
-    %             K_ss        = ys(1);
-    %             b           = ys(55);
-    %             delta_c     = ys(56);
-    %             save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %             try
-    %                 GK_Nom_CapU
-    %                 W_pos=strmatch('Wf',M_.endo_names,'exact');
-    %                 welfare_grid_y(k,kk)=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
-    %             catch
-    %                 disp('Blanchard Kahn condition not fulfilled!')
-    %             end
-    %             iter= iter+1;
-    %             fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(lambda_grid)))
-    %             %clear global
-    %         end
-    %         welfgrid_y_Norm(k,:) = (welfare_grid_y(k,:)-min(welfare_grid_y(k,:)))./abs(min(welfare_grid_y(k,:)));
-    %     end
-    %     %
-    %     %     [M,I]=max(welfare_grid(:));
-    %     %
-    %     %     welfare_grid(I)
-    %     %     [I1,I2,I3] = ind2sub(size(welfare_grid),I);
-    %     %     welfare_grid(I1,I2,I3)
-    %     %     fprintf('Maximum of Welfare: %d \n',M)
-    %     %     fprintf('Optimal Weight on Price Inflation: %d \n',kappa_pie_grid(I1))
-    %     %     fprintf('Optimal Weight on Wage Inflation: %d \n',kappa_pieW_grid(I2))
-    %     %     fprintf('Optimal Weight on Output Gap: %d \n',kappa_y_grid(I3))
-    %     %
-    %     %
-    %
-    %     %     welfgrid_rhoLowFF = (max(welfare_grid_rho(:,1))-welfare_grid_rho(:,1))./max(welfare_grid_rho(:,1));
-    %     %     welfgrid_rhoLLFF = (max(welfare_grid_rho(:,2))-welfare_grid_rho(:,2))./max(welfare_grid_rho(:,2));
-    %     %     welfgrid_rhoLLLFF = (max(welfare_grid_rho(:,3))-welfare_grid_rho(:,3))./max(welfare_grid_rho(:,3));
-    %     %     welfgrid_rhoBenchFF = (max(welfare_grid_rho(:,4))-welfare_grid_rho(:,4))./max(welfare_grid_rho(:,4));
-    %     %     welfgrid_rhoHighFF = (max(welfare_grid_rho(:,6))-welfare_grid_rho(:,6))./max(welfare_grid_rho(:,6));
-    %
-    %     %     oldfolder = cd('D:\GK\GK_NoFinFriction\Simple Rule_pw');
-    %     %     load welfgrid_rhoNoFF
-    %     %     cd(oldfolder);
+            for k=1:length(lambda_grid)
+                lambda = lambda_grid(k);
+                save('params','lambda','-append')
+                [ys,check]  = CapU_steadystate;
+                K_ss        = ys(1);
+                b           = ys(55);
+                delta_c     = ys(56);
+                save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
     
-    % %% Determinancy detection
-    indeterminacy_pie_pieW = zeros(length(kappa_pie_grid),length(kappa_pieW_grid));
-    indeterminacy_rho_pie = zeros(length(kappa_pie_grid),length(rho_grid));
-    indeterminacy_rho_pieW = zeros(length(rho_grid),length(kappa_pieW_grid));
-    indeterminacy_y_pieW= zeros(length(kappa_pieW_grid),length(kappa_y_grid));
-    indeterminacy_y_pie= zeros(length(kappa_pie_grid),length(kappa_y_grid));
-    
-    
-    kappa_pie_grid  = -1.5:0.25:5;
-    kappa_pieW_grid = -1.5:0.25:5;
-    kappa_y_grid    = -1.5:0.25:5;
-    rho_grid        = 0:0.1:1;
-    lambda_grid     = 0.1:0.1:0.6;
-    
-    dynare  GK_Nom_CapU
-    iter = 0;
-    lambda = 0.381;
-    [ys,check]  = CapU_steadystate;
-    K_ss        = ys(1);
-    b           = ys(55);
-    delta_c     = ys(56);
-    
-    save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    
-    
-            %load paramsBench.mat
-            for k=1:length(kappa_pieW_grid)
-                kappa_pieW = kappa_pieW_grid(k);
-                %lambda = 0.37;
                 for kk = 1:length(kappa_pie_grid)
                     kappa_pie   = kappa_pie_grid(kk);
+                    kappa_pieW  = 0;
                     kappa_y     = 0;
                     kappa_prem  = 0;
                     rho         = 0;
@@ -454,141 +279,86 @@ if gridsearch==1
                     try
                         GK_Nom_CapU
                         temp = Wf;
-                        indeterminacy_pie_pieW(k,kk) = 0;
+                        indeterminacy_lambda_pie(k,kk) = 0;
                     catch
                         disp('Blanchard Kahn condition not fulfilled!')
-                        indeterminacy_pie_pieW(k,kk) = 1;
+                        indeterminacy_lambda_pie(k,kk) = 1;
                     end
                     iter= iter+1;
-                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)))
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(lambda_grid)))
                     %clear global
                 end
             end
     
     
     iter = 0;
-            for k=1:length(kappa_pie_grid)
-                kappa_pie = kappa_pie_grid(k);
-                for kk = 1:length(rho_grid)
+            for k=1:length(lambda_grid)
+                lambda = lambda_grid(k);
+                save('params','lambda','-append')
+                [ys,check]  = CapU_steadystate;
+                K_ss        = ys(1);
+                b           = ys(55);
+                delta_c     = ys(56);
+                save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
+                for kk = 1:length(kappa_y_grid)
+                    kappa_pie   = 0;
                     kappa_pieW  = 0;
-                    kappa_y     = 0;
+                    kappa_y     = kappa_y_grid(kk);
                     kappa_prem  = 0;
-                    rho         = rho_grid(kk);
+                    rho         = 0;
                     save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
                     try
                         GK_Nom_CapU
                         temp = Wf;
-                        indeterminacy_rho_pie(k,kk) = 0;
+                        indeterminacy_lambda_y(k,kk) = 0;
                     catch
                         disp('Blanchard Kahn condition not fulfilled!')
-                        indeterminacy_rho_pie(k,kk) = 1;
+                        indeterminacy_lambda_y(k,kk) = 1;
                     end
                     iter= iter+1;
-                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pie_grid)))
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_y_grid)))
                 end
             end
     
     
     
             iter = 0;
-            for k=1:length(rho_grid)
-                rho = rho_grid(k);
+            for k=1:length(lambda_grid)
+                lambda = lambda_grid(k);
+                save('params','lambda','-append')
+                [ys,check]  = CapU_steadystate;
+                K_ss        = ys(1);
+                b           = ys(55);
+                delta_c     = ys(56);
+                save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
                 for kk = 1:length(kappa_pieW_grid)
                     kappa_pie   = 0;
                     kappa_pieW  = kappa_pieW_grid(kk);
                     kappa_y     = 0;
                     kappa_prem  = 0;
+                    rho         = 0;
                     save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
                     try
                         GK_Nom_CapU
                         temp = Wf;
-                       indeterminacy_rho_pieW(k,kk) = 0;
+                       indeterminacy_lambda_pieW(k,kk) = 0;
                     catch
                         disp('Blanchard Kahn condition not fulfilled!')
-                        indeterminacy_rho_pieW(k,kk) = 1;
+                        indeterminacy_lambda_pieW(k,kk) = 1;
                     end
                    iter= iter+1;
-                   fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pieW_grid)))
+                   fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_pieW_grid)))
                  end
              end
-    
-                    iter = 0;
-            for k=1:length(kappa_pieW_grid)
-                kappa_pieW = kappa_pieW_grid(k);
-                for kk = 1:length(kappa_y_grid)
-                    kappa_pie   = 0;
-                    kappa_y     = kappa_y_grid(kk);
-                    kappa_prem  = 0;
-                    rho         = 0;
-                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-                    try
-                        GK_Nom_CapU
-                        temp = Wf;
-                        indeterminacy_y_pieW(k,kk) = 0;
-                    catch
-                        disp('Blanchard Kahn condition not fulfilled!')
-                        indeterminacy_y_pieW(k,kk) = 1;
-                    end
-                    iter= iter+1;
-                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pieW_grid)))
-                    %clear global
-                end
-            end
-    
-    
-             iter = 0;
-             for k=1:length(kappa_pie_grid)
-                kappa_pie = kappa_pie_grid(k);
-                for kk = 1:length(kappa_y_grid)
-                    kappa_pieW   = 0;
-                    kappa_y     = kappa_y_grid(kk);
-                    kappa_prem  = 0;
-                    rho         = 0;
-                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-                    try
-                        GK_Nom_CapU
-                        temp = Wf;
-                        indeterminacy_y_pie(k,kk) = 0;
-                    catch
-                        disp('Blanchard Kahn condition not fulfilled!')
-                        indeterminacy_y_pie(k,kk) = 1;
-                    end
-                    iter= iter+1;
-                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pie_grid)))
-                     %clear global
-                end
-            end
-    %     %     %
-    %     %     %     [M,I]=max(welfare_grid(:));
-    %     %     %
-    %     %     %     welfare_grid(I)
-    %     %     %     [I1,I2,I3] = ind2sub(size(welfare_grid),I);
-    %     %     %     welfare_grid(I1,I2,I3)
-    %     %     %     fprintf('Maximum of Welfare: %d \n',M)
-    %     %     %     fprintf('Optimal Weight on Price Inflation: %d \n',kappa_pie_grid(I1))
-    %     %     %     fprintf('Optimal Weight on Wage Inflation: %d \n',kappa_pieW_grid(I2))
-    %     %     %     fprintf('Optimal Weight on Output Gap: %d \n',kappa_y_grid(I3))
-    %     %     %
-    %     %     %
-    %
-    %     % %     welfgrid_rhoLowFF = (max(welfare_grid_rho(:,1))-welfare_grid_rho(:,1))./max(welfare_grid_rho(:,1));
-    %     % %     welfgrid_rhoLLFF = (max(welfare_grid_rho(:,2))-welfare_grid_rho(:,2))./max(welfare_grid_rho(:,2));
-    %     % %     welfgrid_rhoLLLFF = (max(welfare_grid_rho(:,3))-welfare_grid_rho(:,3))./max(welfare_grid_rho(:,3));
-    %     % %     welfgrid_rhoBenchFF = (max(welfare_grid_rho(:,4))-welfare_grid_rho(:,4))./max(welfare_grid_rho(:,4));
-    %     % %     welfgrid_rhoHighFF = (max(welfare_grid_rho(:,6))-welfare_grid_rho(:,6))./max(welfare_grid_rho(:,6));
-    %
-    %     % %     oldfolder = cd('D:\GK\GK_NoFinFriction\Simple Rule_pw');
-    %     % %     load welfgrid_rhoNoFF
-    %     % %     cd(oldfolder);
-    %
-        d1=figure('Name','Determinancy Pie PieW','NumberTitle','off');
-        [X,Y] = meshgrid(kappa_pie_grid,kappa_pieW_grid');
-        surf(X,Y,indeterminacy_pie_pieW);
+             
+        d1=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
+        [X,Y] = meshgrid(lambda_grid,kappa_pie_grid');
+        surf(X,Y,indeterminacy_lambda_pie);
         rotate3d on
         axis tight
-        title('Determinancy Price Inflation Coefficient and Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+        title('Determinancy Inflation Coefficient','interpreter','latex', 'FontSize', 16)
         xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
-        ylabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
+        ylabel('\lambda','interpreter','latex', 'FontSize', 16)
         xt = get(gca, 'XTick');
         %yt = get(gca, 'YTick');
         set(gca, 'FontSize', 16)
@@ -597,217 +367,292 @@ if gridsearch==1
          el = 90;
          view(az, el);
          colormap colorcube;
-         saveas(d1,'Det_Pie_PieW','fig')
-         saveas(d1,'Det_Pie_PieW','eps')
-    
-    %     d2=figure('Name','Determinancy Pie Rho','NumberTitle','off');
-    %     [X,Y] = meshgrid(kappa_pie_grid,rho_grid);
-    %     surf(X,Y,indeterminacy_rho_pie');
-    %     rotate3d on
-    %     axis tight
-    %     title('Determinancy Price Inflation Coefficient and Interest Rate Smoothing','interpreter','latex', 'FontSize', 16)
-    %     xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
-    %     ylabel('\rho','interpreter','latex', 'FontSize', 16)
-    %     xt = get(gca, 'XTick');
-    %     %yt = get(gca, 'YTick');
-    %     set(gca, 'FontSize', 16)
-    %     %zlabel('Welfare')
-    %     az = 0;
-    %     el = 90;
-    %     view(az, el);
-    %     colormap colorcube;
-    %     saveas(d2,'Det_Pie_Rho','fig')
-    %     saveas(d2,'Det_Pie_Rho','eps')
-    %
-    %     d3=figure('Name','Determinancy PieW Rho','NumberTitle','off');
-    %     [X,Y] = meshgrid(kappa_pieW_grid,rho_grid);
-    %     surf(X,Y,indeterminacy_rho_pieW);
-    %     rotate3d on
-    %     axis tight
-    %     title('Determinancy Wage Inflation Coefficient and Interest Rate Smoothing','interpreter','latex', 'FontSize', 16)
-    %     xlabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
-    %     ylabel('\rho','interpreter','latex', 'FontSize', 16)
-    %     xt = get(gca, 'XTick');
-    %     %yt = get(gca, 'YTick');
-    %     set(gca, 'FontSize', 16)
-    %     %zlabel('Welfare')
-    %     az = 0;
-    %     el = 90;
-    %     view(az, el);
-    %     colormap colorcube;
-    %     saveas(d3,'Det_PieW_Rho','fig')
-    %     saveas(d3,'Det_PieW_Rho','eps')
-    %
-    %     d4=figure('Name','Determinancy PieW Output','NumberTitle','off');
-    %     [X,Y] = meshgrid(kappa_pieW_grid,kappa_y_grid);
-    %     surf(X,Y,indeterminacy_y_pieW');
-    %     rotate3d on
-    %     axis tight
-    %     title('Determinancy Wage Inflation Coefficient and Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
-    %     xlabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
-    %     ylabel('\kappa_y','interpreter','latex', 'FontSize', 16)
-    %     xt = get(gca, 'XTick');
-    %     %yt = get(gca, 'YTick');
-    %     set(gca, 'FontSize', 16)
-    %     %zlabel('Welfare')
-    %     az = 0;
-    %     el = 90;
-    %     view(az, el);
-    %     colormap colorcube;
-    %     saveas(d4,'Det_PieW_Y','fig')
-    %     saveas(d4,'Det_PieW_Y','eps')
-    %
-    %     d5=figure('Name','Determinancy Pie Output','NumberTitle','off');
-    %     [X,Y] = meshgrid(kappa_pie_grid,kappa_y_grid);
-    %     surf(X,Y,indeterminacy_y_pie');
-    %     rotate3d on
-    %     axis tight
-    %     title('Determinancy Price Inflation Coefficient and Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
-    %     xlabel('\kappa_{\pi}','interpreter','latex', 'FontSize', 16)
-    %     ylabel('\kappa_y','interpreter','latex', 'FontSize', 16)
-    %     xt = get(gca, 'XTick');
-    %     %yt = get(gca, 'YTick');
-    %     set(gca, 'FontSize', 16)
-    %     %zlabel('Welfare')
-    %     az = 0;
-    %     el = 90;
-    %     view(az, el);
-    %     colormap colorcube;
-    %     saveas(d5,'Det_Pie_Y','fig')
-    %     saveas(d5,'Det_Pie_Y','eps')
+         saveas(d1,'Det_Lambda_Pie','fig')
+         saveas(d1,'Det_Lambda_Pie','eps')
+         
+        d2=figure('Name','Determinancy Lambda Y','NumberTitle','off');
+        [X,Y] = meshgrid(lambda_grid,kappa_y_grid');
+        surf(X,Y,indeterminacy_lambda_y);
+        rotate3d on
+        axis tight
+        title('Determinancy Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
+        xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
+        ylabel('\lambda','interpreter','latex', 'FontSize', 16)
+        xt = get(gca, 'XTick');
+        %yt = get(gca, 'YTick');
+        set(gca, 'FontSize', 16)
+        %zlabel('Welfare')
+         az = 0;
+         el = 90;
+         view(az, el);
+         colormap colorcube;
+         saveas(d1,'Det_Lambda_Y','fig')
+         saveas(d1,'Det_Lambda_Y','eps')
+         
+        d3=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
+        [X,Y] = meshgrid(lambda_grid,kappa_pieW_grid');
+        surf(X,Y,indeterminacy_lambda_pieW);
+        rotate3d on
+        axis tight
+        title('Determinancy Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+        xlabel('\kappa_\pi_{W}','interpreter','latex', 'FontSize', 16)
+        ylabel('\lambda','interpreter','latex', 'FontSize', 16)
+        xt = get(gca, 'XTick');
+        %yt = get(gca, 'YTick');
+        set(gca, 'FontSize', 16)
+        %zlabel('Welfare')
+         az = 0;
+         el = 90;
+         view(az, el);
+         colormap colorcube;
+         saveas(d1,'Det_Lambda_PieW','fig')
+         saveas(d1,'Det_Lambda_PieW','eps')
     
     
-    %     %     % Plots for lambda and rho
-    %     %     %         figure()
-    %     %     %         [X,Y]=meshgrid(rho_grid,lambda_grid);
-    %     %     %         surf(X,Y,welfare_grid_Rho')
-    %     %     %         rotate3d on
-    %     %     %         title('Welfare Interest Rate Smoothing given different degrees of Financial Frictions')
-    %     %     %         xlabel('\rho')
-    %     %     %         ylabel('\lambda')
-    %     %     %         zlabel('Welfare')
-    %     %     %         colorbar
-    %     %
-    %     figure()
-    %     plot(rho_grid,welfgrid_rho_Norm(1,:),'LineWidth',1.5)
-    %     hold on
-    %     plot(rho_grid,welfgrid_rho_Norm(2,:),'LineWidth',1.5)
-    %     plot(rho_grid,welfgrid_rho_Norm(3,:),'LineWidth',1.5)
-    %     plot(rho_grid,welfgrid_rho_Norm(4,:),'LineWidth',1.5)
-    %     plot(rho_grid,welfgrid_rho_Norm(5,:),'LineWidth',1.5)
-    %     plot(rho_grid,welfgrid_rho_Norm(6,:),'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     legend('\lambda = 0.1','\lambda = 0.2','\lambda = 0.3','\lambda = 0.4','\lambda = 0.5','\lambda = 0.6')
-    %     xlabel('\rho')
-    %     ylabel('Welfare %')
-    %     title('Welfare Interest Rate Smoothing given different degrees of Financial Frictions')
-    %
-    %
-    %
-    %     % Plots for lambda and kappa_pi
-    %     figure()
-    %     plot(kappa_pie_grid,welfgrid_pie_Norm(1,:),'LineWidth',1.5)
-    %     hold on
-    %     plot(kappa_pie_grid,welfgrid_pie_Norm(2,:),'LineWidth',1.5)
-    %     plot(kappa_pie_grid(2:end),welfgrid_pie_Norm(3,2:end),'LineWidth',1.5)
-    %     plot(kappa_pie_grid(2:end),welfgrid_pie_Norm(4,2:end),'LineWidth',1.5)
-    %     plot(kappa_pie_grid(3:end),welfgrid_pie_Norm(5,3:end),'LineWidth',1.5)
-    %     plot(kappa_pie_grid(3:end),welfgrid_pie_Norm(6,3:end),'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     legend('\lambda = 0.1','\lambda = 0.2','\lambda = 0.3','\lambda = 0.4','\lambda = 0.5','\lambda = 0.6')
-    %     xlabel('\rho')
-    %     ylabel('Welfare %')
-    %     title('Welfare Inflation Targeting given different degrees of Financial Frictions')
-    %
-    %
-    %     % Plots for lambda and kappa_piW
-    %     figure()
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(1,:),'LineWidth',1.5)
-    %     hold on
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(2,:),'LineWidth',1.5)
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(3,:),'LineWidth',1.5)
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(4,:),'LineWidth',1.5)
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(5,:),'LineWidth',1.5)
-    %     plot(kappa_pieW_grid,welfgrid_pieW_Norm(6,:),'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     legend('\lambda = 0.1','\lambda = 0.2','\lambda = 0.3','\lambda = 0.4','\lambda = 0.5','\lambda = 0.6')
-    %     xlabel('\rho')
-    %     ylabel('Welfare %')
-    %     title('Welfare Wage Inflation Targeting given different degrees of Financial Frictions')
-    %
-    %
-    %     % Plots for lambda and kappa_piW
-    %     figure()
-    %     plot(kappa_y_grid,welfgrid_y_Norm(1,:),'LineWidth',1.5)
-    %     hold on
-    %     plot(kappa_y_grid,welfgrid_y_Norm(2,:),'LineWidth',1.5)
-    %     plot(kappa_y_grid,welfgrid_y_Norm(3,:),'LineWidth',1.5)
-    %     plot(kappa_y_grid,welfgrid_y_Norm(4,:),'LineWidth',1.5)
-    %     plot(kappa_y_grid(2:end),welfgrid_y_Norm(5,2:end),'LineWidth',1.5)
-    %     plot(kappa_y_grid(2:end),welfgrid_y_Norm(6,2:end),'LineWidth',1.5)
-    %     %plot(rho_grid,welfgrid_rhoNoFF,'LineWidth',1.5)
-    %     legend('\lambda = 0.1','\lambda = 0.2','\lambda = 0.3','\lambda = 0.4','\lambda = 0.5','\lambda = 0.6')
-    %     xlabel('\kappa_y')
-    %     ylabel('Welfare %')
-    %     title('Welfare Output Gap Targeting given different degrees of Financial Frictions')
-    %
-    %     %     figure()
-    %     %     [X,Y]=meshgrid(kappa_pie_grid,kappa_pieW_grid);
-    %     %     surf(X,Y,welfare_grid(:,:,1)')
-    %     %     rotate3d onlm
-    %     %     title('Welfare Weight on Price Inflation and Wage Inflation')
-    %     %     xlabel('Price Inflation')
-    %     %     ylabel('Wage Inflation')
-    %     %     zlabel('Welfare')
-    %     %     colorbar
-    %     %
-    %     %     figure()
-    %     %     [X,Y]=meshgrid(kappa_pie_grid,kappa_y_grid);
-    %     %     surf(X,Y,reshape(welfare_grid(:,1,:),length(kappa_pie_grid),length(kappa_y_grid))')
-    %     %     rotate3d on
-    %     %     title('Welfare Weight on Price Inflation and Output Gap')
-    %     %     xlabel('Price Inflation')
-    %     %     ylabel('Output Gap')
-    %     %     zlabel('Welfare')
-    %     %     colorbar
-    %     %
-    %     %     figure()
-    %     %     [X,Y]=meshgrid(kappa_pieW_grid,kappa_y_grid);
-    %     %     surf(X,Y,reshape(welfare_grid(1,:,:),length(kappa_pieW_grid),length(kappa_y_grid))')
-    %     %     rotate3d on
-    %     %     title('Welfare Weight on Wage Inflation and Output Gap')
-    %     %     xlabel('Wage Inflation')
-    %     %     ylabel('Output Gap')
-    %     %     zlabel('Welfare')
-    %     %     colorbar
-    %     %
-    %     %     figure()
-    %     %     plot(kappa_pieW_grid,reshape(welfare_grid(1,:,1),length(kappa_pieW_grid),1))
-    %     %     line([kappa_pieW_grid(1) kappa_pieW_grid(end)],[M M],'Color','k')
-    %     %     %axis tight
-    %     %     title('Welfare Weight on Wage Inflation')
-    %     %     xlabel('Wage Inflation')
-    %     %     ylabel('Welfare')
-    %     %
-    %     %     figure()
-    %     %     plot(kappa_pie_grid,reshape(welfare_grid(:,1,1),length(kappa_pie_grid),1))
-    %     %     line([kappa_pie_grid(1) kappa_pie_grid(end)],[M M],'Color','k')
-    %     %     title('Welfare Weight on Price Inflation')
-    %     %     xlabel('Price Inflation')
-    %     %     ylabel('Welfare')
-    %     %
-    %     %     figure()
-    %     %     plot(kappa_y_grid,reshape(welfare_grid(1,1,:),length(kappa_y_grid),1))
-    %     %     line([kappa_y_grid(1) kappa_y_grid(end)],[M M],'Color','k')
-    %     %     title('Welfare Weight on Output Gap')
-    %     %     xlabel('Output Gap')
-    %     %     ylabel('Welfare')
+     % kappa_pie_grid  = -1.5:0.125:5;
+    % kappa_pieW_grid = -1.5:0.125:5;
+    % kappa_y_grid    = -1.5:0.125:5;
+    % rho_grid        = 0:0.1:1;
+    % lambda_grid     = 0.1:0.05:0.6;
+    
+    % indeterminacy_pie_pieW = zeros(length(kappa_pie_grid),length(kappa_pieW_grid));
+    % indeterminacy_rho_pie = zeros(length(kappa_pie_grid),length(rho_grid));
+    % indeterminacy_rho_pieW = zeros(length(rho_grid),length(kappa_pieW_grid));
+    % indeterminacy_y_pieW= zeros(length(kappa_pieW_grid),length(kappa_y_grid));
+    % indeterminacy_y_pie= zeros(length(kappa_pie_grid),length(kappa_y_grid));
+    
+    
+    
+    
+    % dynare  GK_Nom_CapU
+    % iter = 0;
+    % lambda = 0.381;
+    % [ys,check]  = CapU_steadystate;
+    % K_ss        = ys(1);
+    % b           = ys(55);
+    % delta_c     = ys(56);
+    
+    % save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
+    
+    
+    % for k=1:length(kappa_pieW_grid)
+    %     kappa_pieW = kappa_pieW_grid(k);
+    %     for kk = 1:length(kappa_pie_grid)
+    %         kappa_pie   = kappa_pie_grid(kk);
+    %         kappa_y     = 0;
+    %         kappa_prem  = 0;
+    %         rho         = 0;
+    %         save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
+    %         try
+    %             clear Wf
+    %             GK_Nom_CapU
+    %             temp = Wf;
+    %             indeterminacy_pie_pieW(k,kk) = 0;
+    %         catch
+    %             disp('Blanchard Kahn condition not fulfilled!')
+    %             indeterminacy_pie_pieW(k,kk) = 1;
+    %         end
+    %         iter= iter+1;
+    %         fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)))
+    %         %clear global
+    %     end
+    % end
+    
+    % iter = 0;
+    % for k=1:length(kappa_pie_grid)
+    %     kappa_pie = kappa_pie_grid(k);
+    %     for kk = 1:length(rho_grid)
+    %         kappa_pieW  = 0;
+    %         kappa_y     = 0;
+    %         kappa_prem  = 0;
+    %         rho         = rho_grid(kk);
+    %         save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+    %         try
+    %             clear Wf
+    %             GK_Nom_CapU
+    %             temp = Wf;
+    %             indeterminacy_rho_pie(k,kk) = 0;
+    %         catch
+    %             disp('Blanchard Kahn condition not fulfilled!')
+    %             indeterminacy_rho_pie(k,kk) = 1;
+    %         end
+    %         iter= iter+1;
+    %         fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pie_grid)))
+    %     end
+    % end
+    
+    
+    
+    % iter = 0;
+    % for k=1:length(rho_grid)
+    %     rho = rho_grid(k);
+    %     for kk = 1:length(kappa_pieW_grid)
+    %         kappa_pie   = 0;
+    %         kappa_pieW  = kappa_pieW_grid(kk);
+    %         kappa_y     = 0;
+    %         kappa_prem  = 0;
+    %         save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+    %         try
+    %             clear Wf
+    %             GK_Nom_CapU
+    %             temp = Wf;
+    %             indeterminacy_rho_pieW(k,kk) = 0;
+    %         catch
+    %             disp('Blanchard Kahn condition not fulfilled!')
+    %             indeterminacy_rho_pieW(k,kk) = 1;
+    %         end
+    %         iter= iter+1;
+    %         fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pieW_grid)))
+    %     end
+    % end
+    
+    
+    % iter = 0;
+    % for k=1:length(kappa_pieW_grid)
+    %     kappa_pieW = kappa_pieW_grid(k);
+    %     for kk = 1:length(kappa_y_grid)
+    %         kappa_pie   = 0;
+    %         kappa_y     = kappa_y_grid(kk);
+    %         kappa_prem  = 0;
+    %         rho         = 0;
+    %         save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+    %         try
+    %             clear Wf
+    %             GK_Nom_CapU
+    %             temp = Wf;
+    %             indeterminacy_y_pieW(k,kk) = 0;
+    %         catch
+    %             disp('Blanchard Kahn condition not fulfilled!')
+    %             indeterminacy_y_pieW(k,kk) = 1;
+    %         end
+    %         iter= iter+1;
+    %         fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pieW_grid)))
+    %         %clear global
+    %     end
+    % end
+    
+    
+    % iter = 0;
+    % for k=1:length(kappa_pie_grid)
+    %     kappa_pie = kappa_pie_grid(k);
+    %     for kk = 1:length(kappa_y_grid)
+    %         kappa_pieW   = 0;
+    %         kappa_y     = kappa_y_grid(kk);
+    %         kappa_prem  = 0;
+    %         rho         = 0;
+    %         save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+    %         try
+    %             clear Wf
+    %             GK_Nom_CapU
+    %             temp = Wf;
+    %             indeterminacy_y_pie(k,kk) = 0;
+    %         catch
+    %             disp('Blanchard Kahn condition not fulfilled!')
+    %             indeterminacy_y_pie(k,kk) = 1;
+    %         end
+    %         iter= iter+1;
+    %         fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pie_grid)))
+    %         %clear global
+    %     end
+    % end
+    
+    % d1=figure('Name','Determinancy Pie PieW','NumberTitle','off');
+    % [X,Y] = meshgrid(kappa_pie_grid,kappa_pieW_grid');
+    % surf(X,Y,indeterminacy_pie_pieW);
+    % rotate3d on
+    % axis tight
+    % title('Determinancy Price Inflation Coefficient and Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+    % xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
+    % ylabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
+    % xt = get(gca, 'XTick');
+    % %yt = get(gca, 'YTick');
+    % set(gca, 'FontSize', 16)
+    % %zlabel('Welfare')
+    % az = 0;
+    % el = 90;
+    % view(az, el);
+    % colormap colorcube;
+    % saveas(d1,'Det_Pie_PieW','fig')
+    % saveas(d1,'Det_Pie_PieW','eps')
+    
+    % d2=figure('Name','Determinancy Pie Rho','NumberTitle','off');
+    % [X,Y] = meshgrid(kappa_pie_grid,rho_grid);
+    % surf(X,Y,indeterminacy_rho_pie');
+    % rotate3d on
+    % axis tight
+    % title('Determinancy Price Inflation Coefficient and Interest Rate Smoothing','interpreter','latex', 'FontSize', 16)
+    % xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
+    % ylabel('\rho','interpreter','latex', 'FontSize', 16)
+    % xt = get(gca, 'XTick');
+    % %yt = get(gca, 'YTick');
+    % set(gca, 'FontSize', 16)
+    % %zlabel('Welfare')
+    % az = 0;
+    % el = 90;
+    % view(az, el);
+    % colormap colorcube;
+    % saveas(d2,'Det_Pie_Rho','fig')
+    % saveas(d2,'Det_Pie_Rho','eps')
+    
+    % d3=figure('Name','Determinancy PieW Rho','NumberTitle','off');
+    % [X,Y] = meshgrid(kappa_pieW_grid,rho_grid);
+    % surf(X,Y,indeterminacy_rho_pieW);
+    % rotate3d on
+    % axis tight
+    % title('Determinancy Wage Inflation Coefficient and Interest Rate Smoothing','interpreter','latex', 'FontSize', 16)
+    % xlabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
+    % ylabel('\rho','interpreter','latex', 'FontSize', 16)
+    % xt = get(gca, 'XTick');
+    % %yt = get(gca, 'YTick');
+    % set(gca, 'FontSize', 16)
+    % %zlabel('Welfare')
+    % az = 0;
+    % el = 90;
+    % view(az, el);
+    % colormap colorcube;
+    % saveas(d3,'Det_PieW_Rho','fig')
+    % saveas(d3,'Det_PieW_Rho','eps')
+    
+    % d4=figure('Name','Determinancy PieW Output','NumberTitle','off');
+    % [X,Y] = meshgrid(kappa_pieW_grid,kappa_y_grid);
+    % surf(X,Y,indeterminacy_y_pieW');
+    % rotate3d on
+    % axis tight
+    % title('Determinancy Wage Inflation Coefficient and Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
+    % xlabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
+    % ylabel('\kappa_y','interpreter','latex', 'FontSize', 16)
+    % xt = get(gca, 'XTick');
+    % %yt = get(gca, 'YTick');
+    % set(gca, 'FontSize', 16)
+    % %zlabel('Welfare')
+    % az = 0;
+    % el = 90;
+    % view(az, el);
+    % colormap colorcube;
+    % saveas(d4,'Det_PieW_Y','fig')
+    % saveas(d4,'Det_PieW_Y','eps')
+    
+    % d5=figure('Name','Determinancy Pie Output','NumberTitle','off');
+    % [X,Y] = meshgrid(kappa_pie_grid,kappa_y_grid);
+    % surf(X,Y,indeterminacy_y_pie');
+    % rotate3d on
+    % axis tight
+    % title('Determinancy Price Inflation Coefficient and Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
+    % xlabel('\kappa_{\pi}','interpreter','latex', 'FontSize', 16)
+    % ylabel('\kappa_y','interpreter','latex', 'FontSize', 16)
+    % xt = get(gca, 'XTick');
+    % %yt = get(gca, 'YTick');
+    % set(gca, 'FontSize', 16)
+    % %zlabel('Welfare')
+    % az = 0;
+    % el = 90;
+    % view(az, el);
+    % colormap colorcube;
+    % saveas(d5,'Det_Pie_Y','fig')
+    % saveas(d5,'Det_Pie_Y','eps')
     
 else
-    disp('No grid search was running!')
+    disp('No Determinancy Calculations')
 end
 
 %% Run Impulse Responses
