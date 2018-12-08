@@ -78,14 +78,7 @@ save  params.mat alfa b betta cap chi cpp deltai delta_c epsilon eta_i g_ss gamm
     gamma_comp h i_bar K_ss L_ss Iss kappa_pie kappa_y kappa_pieW kappa_prem kappa_x lambda mu_mark ...
     omega Premium_SS psi_ss pi_ss piW_ss rho rho_a rho_Eint rho_ksi rho_g rho_mark_p rho_mark rho_w rho_prem tau theta thetaw varphi ...
     sigma_epsiA sigma_epsiK sigma_epsiMW sigma_epsiPrem sigma_epsiMP sigma_epsiW sigma_epsiInt sigma_epsiPrem_obs sigma_epsiG
-% 
-% ind_A     = 1;
-% ind_K     = 1;
-% ind_MW    = 1;
-% ind_MP    = 1;
-% ind_W     = 0;
-% ind_Int   = 1;
-% ind_G     = 1;
+
 
 %save('params.mat','ind_A','ind_K','ind_MW','ind_MP','ind_W','ind_Int','ind_G','-append')
 gridsearch  = 0;
@@ -208,23 +201,19 @@ if gridsearch==1
     %     fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(5))
     
     
-    %     a = unique(param_opt_vec(:,1));
-    %     out = [a,histc(param_opt_vec(:,1),a)];
-    %     max(out(:,2));
-    % pause;
-    
-    %save optimal_coeff_p param_opt
-    %save optimal_coeff_w param_opt
+
     [M,I]=max(welfare_opt_vec(:));
     param_opt(:) = param_opt_vec(I,:);
     save optimal_coeff_pw param_opt M
     %save optimal_coeff_pw_Rho_Pi param_opt M
     
+    %%%%%%%%%%%%%%%%%
+    %% Determinacy %%
+    %%%%%%%%%%%%%%%%%
     
     kappa_pie_grid  = -1.5:0.25:5;
     kappa_pieW_grid = -1.5:0.25:5;
     kappa_y_grid    = -1.5:0.25:5;
-    kappa_prem_grid = 0:0.5:3;
     rho_grid        = 0:0.1:1;
     lambda_grid     = 0.1:0.1:0.6;
     
@@ -250,29 +239,28 @@ if gridsearch==1
     
     % Determinacy Plots
     
-    % for k=1:length(kappa_pie_grid)
-    %     kappa_pie=kappa_pie_grid(k);
-    %     for kk=1:length(kappa_pieW_grid)
-    %         kappa_pieW=kappa_pieW_grid(kk);
-    %         for kkk=1:length(rho_grid)
-    %             rho=rho_grid(kkk);
-    %             for kkkk=1:length(kappa_y_grid)
-    %                 kappa_y = kappa_y_grid(kkkk);
-    %                 save('params','kappa_pie','kappa_pieW','rho','kappa_y','-append');
-    %                 clear M_ oo_
-    %                 try
-    %                     GK_Nom_CapU
-    %                     indeterminacy(k,kk,kkk,kkkk) = 0;
-    %                 catch
-    %                     indeterminacy(k,kk,kkk,kkkk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)*length(rho_grid))*length(kappa_y_grid))
-    
-    %             end;
-    %         end;
-    %     end;
-    % end;
+    for k=1:length(kappa_pie_grid)
+        kappa_pie=kappa_pie_grid(k);
+        for kk=1:length(kappa_pieW_grid)
+            kappa_pieW=kappa_pieW_grid(kk);
+            for kkk=1:length(rho_grid)
+                rho=rho_grid(kkk);
+                for kkkk=1:length(kappa_y_grid)
+                    kappa_y = kappa_y_grid(kkkk);
+                    save('params','kappa_pie','kappa_pieW','rho','kappa_y','-append');
+                    clear M_ oo_
+                    try
+                        GK_Nom_CapU
+                        indeterminacy(k,kk,kkk,kkkk) = 0;
+                    catch
+                        indeterminacy(k,kk,kkk,kkkk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)*length(rho_grid))*length(kappa_y_grid))
+                   end;
+            end;
+        end;
+    end;
     
     
     %     %dynare  GK_Nom_CapU
@@ -429,148 +417,147 @@ if gridsearch==1
     %     %     cd(oldfolder);
     
     % %% Determinancy detection
-    % indeterminacy_pie_pieW = zeros(length(kappa_pie_grid),length(kappa_pieW_grid));
-    % indeterminacy_rho_pie = zeros(length(kappa_pie_grid),length(rho_grid));
-    % indeterminacy_rho_pieW = zeros(length(rho_grid),length(kappa_pieW_grid));
-    % indeterminacy_y_pieW= zeros(length(kappa_pieW_grid),length(kappa_y_grid));
-    % indeterminacy_y_pie= zeros(length(kappa_pie_grid),length(kappa_y_grid));
-    %
-    %
-    % kappa_pie_grid  = -1.5:0.25:5;
-    % kappa_pieW_grid = -1.5:0.25:5;
-    % kappa_y_grid    = -1.5:0.25:5;
-    % kappa_prem_grid = 0:0.5:3;
-    % rho_grid        = 0:0.1:1;
-    % lambda_grid     = 0.1:0.1:0.6;
-    %
-    % dynare  GK_Nom_CapU
-    % iter = 0;
-    % lambda = 0.381;
-    % [ys,check]  = CapU_steadystate;
-    % K_ss        = ys(1);
-    % b           = ys(55);
-    % delta_c     = ys(56);
-    %
-    % save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %
-    %
-    %         %load paramsBench.mat
-    %         for k=1:length(kappa_pieW_grid)
-    %              kappa_pieW = kappa_pieW_grid(k);
-    %             %lambda = 0.37;
-    %             for kk = 1:length(kappa_pie_grid)
-    %                 kappa_pie   = kappa_pie_grid(kk);
-    %                 kappa_y     = 0;
-    %                 kappa_prem  = 0;
-    %                 rho         = 0;
-    %                 save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-    %                 try
-    %                     GK_Nom_CapU
-    %                     temp = Wf;
-    %                     indeterminacy_pie_pieW(k,kk) = 0;
-    %                 catch
-    %                     disp('Blanchard Kahn condition not fulfilled!')
-    %                     indeterminacy_pie_pieW(k,kk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)))
-    %                 %clear global
-    %             end
-    %         end
-    %
-    %         iter = 0;
-    %         for k=1:length(kappa_pie_grid)
-    %             kappa_pie = kappa_pie_grid(k);
-    %             for kk = 1:length(rho_grid)
-    %                 kappa_pieW  = 0;
-    %                 kappa_y     = 0;
-    %                 kappa_prem  = 0;
-    %                 rho         = rho_grid(kk);
-    %                 save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-    %                 try
-    %                     GK_Nom_CapU
-    %                     temp = Wf;
-    %                     indeterminacy_rho_pie(k,kk) = 0;
-    %                 catch
-    %                     disp('Blanchard Kahn condition not fulfilled!')
-    %                     indeterminacy_rho_pie(k,kk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pie_grid)))
-    %             end
-    %         end
-    %
-    %
-    %
-    %         iter = 0;
-    %         for k=1:length(rho_grid)
-    %             rho = rho_grid(k);
-    %             for kk = 1:length(kappa_pieW_grid)
-    %                 kappa_pie   = 0;
-    %                 kappa_pieW  = kappa_pieW_grid(kk);
-    %                 kappa_y     = 0;
-    %                 kappa_prem  = 0;
-    %                 save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-    %                 try
-    %                     GK_Nom_CapU
-    %                     temp = Wf;
-    %                     indeterminacy_rho_pieW(k,kk) = 0;
-    %                 catch
-    %                     disp('Blanchard Kahn condition not fulfilled!')
-    %                     indeterminacy_rho_pieW(k,kk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pieW_grid)))
-    %             end
-    %         end
-    %
-    %
-    %             iter = 0;
-    %         for k=1:length(kappa_pieW_grid)
-    %             kappa_pieW = kappa_pieW_grid(k);
-    %             for kk = 1:length(kappa_y_grid)
-    %                 kappa_pie   = 0;
-    %                 kappa_y     = kappa_y_grid(kk);
-    %                 kappa_prem  = 0;
-    %                 rho         = 0;
-    %                 save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-    %                 try
-    %                     GK_Nom_CapU
-    %                     temp = Wf;
-    %                     indeterminacy_y_pieW(k,kk) = 0;
-    %                 catch
-    %                     disp('Blanchard Kahn condition not fulfilled!')
-    %                     indeterminacy_y_pieW(k,kk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pieW_grid)))
-    %                 %clear global
-    %             end
-    %         end
-    %
-    %
-    %         iter = 0;
-    %         for k=1:length(kappa_pie_grid)
-    %             kappa_pie = kappa_pie_grid(k);
-    %             for kk = 1:length(kappa_y_grid)
-    %                 kappa_pieW   = 0;
-    %                 kappa_y     = kappa_y_grid(kk);
-    %                 kappa_prem  = 0;
-    %                 rho         = 0;
-    %                 save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-    %                 try
-    %                     GK_Nom_CapU
-    %                     temp = Wf;
-    %                     indeterminacy_y_pie(k,kk) = 0;
-    %                 catch
-    %                     disp('Blanchard Kahn condition not fulfilled!')
-    %                     indeterminacy_y_pie(k,kk) = 1;
-    %                 end
-    %                 iter= iter+1;
-    %                 fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pie_grid)))
-    %                 %clear global
-    %             end
-    %         end
+    indeterminacy_pie_pieW = zeros(length(kappa_pie_grid),length(kappa_pieW_grid));
+    indeterminacy_rho_pie = zeros(length(kappa_pie_grid),length(rho_grid));
+    indeterminacy_rho_pieW = zeros(length(rho_grid),length(kappa_pieW_grid));
+    indeterminacy_y_pieW= zeros(length(kappa_pieW_grid),length(kappa_y_grid));
+    indeterminacy_y_pie= zeros(length(kappa_pie_grid),length(kappa_y_grid));
+    
+    
+    kappa_pie_grid  = -1.5:0.25:5;
+    kappa_pieW_grid = -1.5:0.25:5;
+    kappa_y_grid    = -1.5:0.25:5;
+    rho_grid        = 0:0.1:1;
+    lambda_grid     = 0.1:0.1:0.6;
+    
+    dynare  GK_Nom_CapU
+    iter = 0;
+    lambda = 0.381;
+    [ys,check]  = CapU_steadystate;
+    K_ss        = ys(1);
+    b           = ys(55);
+    delta_c     = ys(56);
+    
+    save('params','K_ss','b','delta_c','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
+    
+    
+            %load paramsBench.mat
+            for k=1:length(kappa_pieW_grid)
+                kappa_pieW = kappa_pieW_grid(k);
+                %lambda = 0.37;
+                for kk = 1:length(kappa_pie_grid)
+                    kappa_pie   = kappa_pie_grid(kk);
+                    kappa_y     = 0;
+                    kappa_prem  = 0;
+                    rho         = 0;
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
+                    try
+                        GK_Nom_CapU
+                        temp = Wf;
+                        indeterminacy_pie_pieW(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_pie_pieW(k,kk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(kappa_pieW_grid)))
+                    %clear global
+                end
+            end
+    
+    
+    iter = 0;
+            for k=1:length(kappa_pie_grid)
+                kappa_pie = kappa_pie_grid(k);
+                for kk = 1:length(rho_grid)
+                    kappa_pieW  = 0;
+                    kappa_y     = 0;
+                    kappa_prem  = 0;
+                    rho         = rho_grid(kk);
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+                    try
+                        GK_Nom_CapU
+                        temp = Wf;
+                        indeterminacy_rho_pie(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_rho_pie(k,kk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pie_grid)))
+                end
+            end
+    
+    
+    
+            iter = 0;
+            for k=1:length(rho_grid)
+                rho = rho_grid(k);
+                for kk = 1:length(kappa_pieW_grid)
+                    kappa_pie   = 0;
+                    kappa_pieW  = kappa_pieW_grid(kk);
+                    kappa_y     = 0;
+                    kappa_prem  = 0;
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+                    try
+                        GK_Nom_CapU
+                        temp = Wf;
+                       indeterminacy_rho_pieW(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_rho_pieW(k,kk) = 1;
+                    end
+                   iter= iter+1;
+                   fprintf('Progress of Grid Search: %d / %d \n',iter,(length(rho_grid)*length(kappa_pieW_grid)))
+                 end
+             end
+    
+                    iter = 0;
+            for k=1:length(kappa_pieW_grid)
+                kappa_pieW = kappa_pieW_grid(k);
+                for kk = 1:length(kappa_y_grid)
+                    kappa_pie   = 0;
+                    kappa_y     = kappa_y_grid(kk);
+                    kappa_prem  = 0;
+                    rho         = 0;
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+                    try
+                        GK_Nom_CapU
+                        temp = Wf;
+                        indeterminacy_y_pieW(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_y_pieW(k,kk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pieW_grid)))
+                    %clear global
+                end
+            end
+    
+    
+             iter = 0;
+             for k=1:length(kappa_pie_grid)
+                kappa_pie = kappa_pie_grid(k);
+                for kk = 1:length(kappa_y_grid)
+                    kappa_pieW   = 0;
+                    kappa_y     = kappa_y_grid(kk);
+                    kappa_prem  = 0;
+                    rho         = 0;
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+                    try
+                        GK_Nom_CapU
+                        temp = Wf;
+                        indeterminacy_y_pie(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_y_pie(k,kk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_y_grid)*length(kappa_pie_grid)))
+                     %clear global
+                end
+            end
     %     %     %
     %     %     %     [M,I]=max(welfare_grid(:));
     %     %     %
@@ -594,25 +581,25 @@ if gridsearch==1
     %     % %     load welfgrid_rhoNoFF
     %     % %     cd(oldfolder);
     %
-    %     d1=figure('Name','Determinancy Pie PieW','NumberTitle','off');
-    %     [X,Y] = meshgrid(kappa_pie_grid,kappa_pieW_grid');
-    %     surf(X,Y,indeterminacy_pie_pieW);
-    %     rotate3d on
-    %     axis tight
-    %     title('Determinancy Price Inflation Coefficient and Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
-    %     xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
-    %     ylabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
-    %     xt = get(gca, 'XTick');
-    %     %yt = get(gca, 'YTick');
-    %     set(gca, 'FontSize', 16)
-    %     %zlabel('Welfare')
-    %     az = 0;
-    %     el = 90;
-    %     view(az, el);
-    %     colormap colorcube;
-    %     saveas(d1,'Det_Pie_PieW','fig')
-    %     saveas(d1,'Det_Pie_PieW','eps')
-    %
+        d1=figure('Name','Determinancy Pie PieW','NumberTitle','off');
+        [X,Y] = meshgrid(kappa_pie_grid,kappa_pieW_grid');
+        surf(X,Y,indeterminacy_pie_pieW);
+        rotate3d on
+        axis tight
+        title('Determinancy Price Inflation Coefficient and Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+        xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
+        ylabel('\kappa_{\pi_w}','interpreter','latex', 'FontSize', 16)
+        xt = get(gca, 'XTick');
+        %yt = get(gca, 'YTick');
+        set(gca, 'FontSize', 16)
+        %zlabel('Welfare')
+         az = 0;
+         el = 90;
+         view(az, el);
+         colormap colorcube;
+         saveas(d1,'Det_Pie_PieW','fig')
+         saveas(d1,'Det_Pie_PieW','eps')
+    
     %     d2=figure('Name','Determinancy Pie Rho','NumberTitle','off');
     %     [X,Y] = meshgrid(kappa_pie_grid,rho_grid);
     %     surf(X,Y,indeterminacy_rho_pie');
