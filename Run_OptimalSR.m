@@ -81,14 +81,14 @@ save  params.mat alfa b betta cap chi cpp deltai delta_c epsilon eta_i g_ss gamm
 
 
 %save('params.mat','ind_A','ind_K','ind_MW','ind_MP','ind_W','ind_Int','ind_G','-append')
-gridsearch  = 0;
-irf_plot    = 1;
+gridsearch  = 1;
+irf_plot    = 0;
 WFcost      = 0;
 Robust      = 0;
 comp_static = 0;
 run_corr    = 0;
 pol_front   = 0;
-determinacy = 1;
+determinacy = 0;
 
 %% Run Search for Optimal Coefficients
 
@@ -102,7 +102,7 @@ if gridsearch==1
     
     
     
-    for iii=1:2
+    for iii=1:1
         
         
         kappa_pie   = 1.5+rand(1);
@@ -138,26 +138,26 @@ if gridsearch==1
         rho_lb          = 0;
         rho_ub          = 1;
         kappa_x_lb      = 0;
-        kappa_x_ub      = 0;
+        kappa_x_ub      = 50;
         %kappa_x_lb      = 0;
         %kappa_x_ub      = 0;
         
         lb = [kappa_pie_lb kappa_pieW_lb kappa_y_lb kappa_prem_lb rho_lb kappa_x_lb];
         ub = [kappa_pie_ub kappa_pieW_ub kappa_y_ub kappa_prem_ub rho_ub kappa_x_ub];
         
-        [param_opt,welfare_opt]= fmincon(@findOptimalRule,x0,[],[],[],[],lb,ub,[],options);
+%         [param_opt,welfare_opt]= fmincon(@findOptimalRule,x0,[],[],[],[],lb,ub,[],options);
          
+%         param_opt_vec(iii,:) = param_opt;
+%         welfare_opt_vec(iii) = -welfare_opt;
+        
+        rng default % For reproducibility
+        ms = MultiStart('UseParallel',true);
+        gs = GlobalSearch(ms);
+        problem = createOptimProblem('fmincon','x0',x0,'objective',@findOptimalRule,'lb',lb,'ub',ub);
+        
+        [param_opt,welfare_opt] = run(gs,problem);
         param_opt_vec(iii,:) = param_opt;
         welfare_opt_vec(iii) = -welfare_opt;
-        %rng default % For reproducibility
-        
-        %ms = MultiStart('UseParallel',true);
-        %gs = GlobalSearch(ms);
-        %problem = createOptimProblem('fmincon','x0',x0,'objective',@findOptimalRule,'lb',lb,'ub',ub);
-        
-        %[param_opt,welfare_opt] = run(gs,problem);
-        %param_opt_vec(iii,:) = param_opt;
-        %welfare_opt_vec(iii) = -welfare_opt;
     end
     
     
@@ -169,13 +169,13 @@ if gridsearch==1
     fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(1,6))
     fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(1))
     
-    fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(2,1))
-    fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(2,2))
-    fprintf('Optimal Weight on Output: %d / \n',param_opt_vec(2,3))
-    fprintf('Optimal Weight on Premium: %d / \n',param_opt_vec(2,4))
-    fprintf('Optimal Indexation: %d / \n',param_opt_vec(2,5))
-    fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(2,6))
-    fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(2))
+%     fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(2,1))
+%     fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(2,2))
+%     fprintf('Optimal Weight on Output: %d / \n',param_opt_vec(2,3))
+%     fprintf('Optimal Weight on Premium: %d / \n',param_opt_vec(2,4))
+%     fprintf('Optimal Indexation: %d / \n',param_opt_vec(2,5))
+%     fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(2,6))
+%     fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(2))
 %     
 %     fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(3,1))
 %     fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(3,2))
@@ -673,22 +673,22 @@ if irf_plot==1
     oldfolder=cd('Figures');
     cd(oldfolder);
     
-    %load optimal_coeff_pw
-%     kappa_pie   = param_opt(1);
-%     kappa_pieW  = param_opt(2);
-%     kappa_y     = param_opt(3);
-%     kappa_prem  = param_opt(4);% 1.2
-%     rho         = param_opt(5);
-%     kappa_x     = param_opt(6);
+    load optimal_coeff_pw
+    kappa_pie   = param_opt(1);
+    kappa_pieW  = param_opt(2);
+    kappa_y     = param_opt(3);
+    kappa_prem  = param_opt(4);% 1.2
+    rho         = param_opt(5);
+    kappa_x     = param_opt(6);
     
-    kappa_pie   = 10; % 1.5
-    kappa_pieW  = 0;
-    kappa_y     = 0; %0.125
-    kappa_prem  = 0;% 1.2
-    rho         = 0; % 0.8
-    kappa_x       = 0;
-    gamma_w =0;
-    gammaW =0;
+%     kappa_pie   = 10; % 1.5
+%     kappa_pieW  = 0;
+%     kappa_y     = 0; %0.125
+%     kappa_prem  = 0;% 1.2
+%     rho         = 0; % 0.8
+%     kappa_x       = 0;
+%     gamma_w =0;
+%     gammaW =0;
     irf_plot = 1;
     save('params','gamma_w','gammaW','K_ss','b','delta_c','kappa_pie','kappa_x','kappa_pieW','kappa_y','kappa_prem','rho','irf_plot','-append');
     dynare GK_Nom_CapU noclearall
@@ -698,11 +698,11 @@ if irf_plot==1
     %oldfolder=cd('D:\GK\GK_CapU_Flex');
     %clear params
     load params
-    kappa_pie   = 3.5; % 1.5
+    kappa_pie   = 1.5; % 1.5
     kappa_pieW  = 0;
-    kappa_y     = 0; %0.125
+    kappa_y     = 0.125; %0.125
     kappa_prem  = 0;% 1.2
-    rho         = 0; % 0.8
+    rho         = 0.8; % 0.8
     kappa_x       = 0;
     irf_plot = 1;
     save('params','K_ss','b','delta_c','kappa_pie','kappa_x','kappa_pieW','kappa_y','kappa_prem','rho','irf_plot','-append');
@@ -726,8 +726,8 @@ if irf_plot==1
     
     
     load params
-    kappa_pie   = 2.5;
-    kappa_pieW  = 0; % 1.5
+    kappa_pie   = 0;
+    kappa_pieW  = 1.5; % 1.5
     kappa_y     = 0;
     kappa_prem  = 0;% 1.2
     rho         = 0;
