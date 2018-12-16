@@ -218,9 +218,10 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 if determinacy==1
     
-    kappa_pie_grid  = -1.5:0.125:5;
-    kappa_pieW_grid = -1.5:0.125:5;
-    kappa_y_grid    = -1.5:0.125:5;
+    irf_plot = 0;
+    kappa_pie_grid  = -1.5:0.1:3;
+    kappa_pieW_grid = -1.5:0.1:3;
+    kappa_y_grid    = -1.5:0.1:3;
     rho_grid        = 0:0.1:1;
     lambda_grid     = 0.1:0.05:0.6;
     
@@ -230,7 +231,9 @@ if determinacy==1
     indeterminacy_lambda_y     = zeros(length(lambda_grid),length(kappa_y_grid));
 
        
-    save('params','irf_plot','-append');
+    gamma_p = 0.875;
+    
+    save('params','irf_plot','gamma_p','-append');
     dynare GK_Nom_CapU noclearall
     iter = 0;
     
