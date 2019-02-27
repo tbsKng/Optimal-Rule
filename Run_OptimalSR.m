@@ -4,9 +4,9 @@ clear global
 %oldfolder = cd('D:\users\tkoenig\GK\Estimation_All');
 %oldfolder = cd('C:\Users\tobi\ownCloud\PhD\GK_Nom_Wages\Code\Estimation_All');
 %load paramsEstimate.mat
-%load('C:\Users\tobi\ownCloud\PhD\GK_Nom_Wages\Code\Calibration\VillaCali.mat')
+load('C:\Users\tobi\ownCloud\PhD\GK_Nom_Wages\Code\Calibration\GKCali.mat')
 %load('H:\ownCloud\PhD\GK_Nom_Wages\Code\Calibration\VillaCali.mat')
-load('H:\ownCloud\PhD\GK_Nom_Wages\Code\Calibration\GKCali.mat')
+%load('H:\ownCloud\PhD\GK_Nom_Wages\Code\Calibration\GKCali.mat')
 %load paramsBench.mat
 %load calibrated_params_1st
 %cd(oldfolder)
@@ -20,11 +20,11 @@ load optimal_coeff_pw
 %gamma_p     = 0;
 %gamma_w     = 0;
 
-% kappa_pie   = 1.0587;
-% kappa_pieW 	= 23.0123;
-% kappa_y     = 48.3304;
+ kappa_pie   = 1.1;
+% kappa_pieW    = 23.0123;
+ kappa_y     = 0;
 % kappa_prem  = 0;
-% rho         = 0.9968;    %
+ rho         = 0;    %
 % kappa_x     = 23.2302;
 % % %h           = 0;
 % % %chi         = 1;
@@ -81,9 +81,9 @@ save  params.mat alfa b betta cap chi cpp deltai delta_c epsilon eta_i g_ss gamm
 
 
 %save('params.mat','ind_A','ind_K','ind_MW','ind_MP','ind_W','ind_Int','ind_G','-append')
-gridsearch  = 1;
+gridsearch  = 0;
 irf_plot    = 0;
-WFcost      = 0;
+WFcost      = 1;
 Robust      = 0;
 comp_static = 0;
 run_corr    = 0;
@@ -102,7 +102,7 @@ if gridsearch==1
     
     
     
-    for iii=1:1
+    for iii=1:2
         
         
         kappa_pie   = 1.5+rand(1);
@@ -138,26 +138,26 @@ if gridsearch==1
         rho_lb          = 0;
         rho_ub          = 1;
         kappa_x_lb      = 0;
-        kappa_x_ub      = 50;
+        kappa_x_ub      = 0;
         %kappa_x_lb      = 0;
         %kappa_x_ub      = 0;
         
         lb = [kappa_pie_lb kappa_pieW_lb kappa_y_lb kappa_prem_lb rho_lb kappa_x_lb];
         ub = [kappa_pie_ub kappa_pieW_ub kappa_y_ub kappa_prem_ub rho_ub kappa_x_ub];
         
-%         [param_opt,welfare_opt]= fmincon(@findOptimalRule,x0,[],[],[],[],lb,ub,[],options);
+        [param_opt,welfare_opt]= fmincon(@findOptimalRule,x0,[],[],[],[],lb,ub,[],options);
          
-%         param_opt_vec(iii,:) = param_opt;
-%         welfare_opt_vec(iii) = -welfare_opt;
-        
-        rng default % For reproducibility
-        ms = MultiStart('UseParallel',true);
-        gs = GlobalSearch(ms);
-        problem = createOptimProblem('fmincon','x0',x0,'objective',@findOptimalRule,'lb',lb,'ub',ub);
-        
-        [param_opt,welfare_opt] = run(gs,problem);
         param_opt_vec(iii,:) = param_opt;
         welfare_opt_vec(iii) = -welfare_opt;
+        %rng default % For reproducibility
+        
+        %ms = MultiStart('UseParallel',true);
+        %gs = GlobalSearch(ms);
+        %problem = createOptimProblem('fmincon','x0',x0,'objective',@findOptimalRule,'lb',lb,'ub',ub);
+        
+        %[param_opt,welfare_opt] = run(gs,problem);
+        %param_opt_vec(iii,:) = param_opt;
+        %welfare_opt_vec(iii) = -welfare_opt;
     end
     
     
@@ -169,13 +169,13 @@ if gridsearch==1
     fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(1,6))
     fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(1))
     
-%     fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(2,1))
-%     fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(2,2))
-%     fprintf('Optimal Weight on Output: %d / \n',param_opt_vec(2,3))
-%     fprintf('Optimal Weight on Premium: %d / \n',param_opt_vec(2,4))
-%     fprintf('Optimal Indexation: %d / \n',param_opt_vec(2,5))
-%     fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(2,6))
-%     fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(2))
+    fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(2,1))
+    fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(2,2))
+    fprintf('Optimal Weight on Output: %d / \n',param_opt_vec(2,3))
+    fprintf('Optimal Weight on Premium: %d / \n',param_opt_vec(2,4))
+    fprintf('Optimal Indexation: %d / \n',param_opt_vec(2,5))
+    fprintf('Optimal Weight on Asset Growth: %d / \n',param_opt_vec(2,6))
+    fprintf('Optimal Welfare: %d / \n',welfare_opt_vec(2))
 %     
 %     fprintf('Optimal Weight on Inflation: %d / \n',param_opt_vec(3,1))
 %     fprintf('Optimal Weight on Wage Inflation: %d / \n',param_opt_vec(3,2))
@@ -231,9 +231,9 @@ if determinacy==1
     indeterminacy_lambda_y     = zeros(length(lambda_grid),length(kappa_y_grid));
 
        
-    gamma_p = 0.875;
-    
-    save('params','irf_plot','gamma_p','-append');
+    %gamma_p = 0.75;
+    %gamma_w = 0.75;
+    save('params','irf_plot','gamma_p','gamma_w','-append');
     dynare GK_Nom_CapU noclearall
     iter = 0;
     
@@ -263,153 +263,154 @@ if determinacy==1
 %     end
     
     
-    for k=1:length(lambda_grid)
-        lambda = lambda_grid(k);
-        save('params','lambda','-append')
-        [ys,check]  = CapU_steadystate;
-        K_ss        = ys(1);
-        b           = ys(55);
-        delta_c     = ys(56);
-        save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
-
-        for kk = 1:length(kappa_pie_grid)
-            kappa_pie   = kappa_pie_grid(kk);
-            kappa_pieW  = 0;
-            kappa_y     = 0;
-            kappa_prem  = 0;
-            rho         = 0;
-            save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
-            try
-                GK_Nom_CapU
-                temp = Wf;
-                indeterminacy_lambda_pie(k,kk) = 0;
-            catch
-                disp('Blanchard Kahn condition not fulfilled!')
-                indeterminacy_lambda_pie(k,kk) = 1;
+            for k=1:length(lambda_grid)
+                lambda = lambda_grid(k);
+                save('params','lambda','-append')
+                [ys,check]  = CapU_steadystate;
+                K_ss        = ys(1);
+                b           = ys(55);
+                delta_c     = ys(56);
+                save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
+    
+                for kk = 1:length(kappa_pie_grid)
+                    kappa_pie   = kappa_pie_grid(kk);
+                    kappa_pieW  = 0;
+                    kappa_y     = 0;
+                    kappa_prem  = 0;
+                    rho         = 0;
+                    save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','irf_plot','-append');
+                    try
+                        clear Wf
+                        GK_Nom_CapU
+                        temp = Wf;
+                        indeterminacy_lambda_pie(k,kk) = 0;
+                    catch
+                        disp('Blanchard Kahn condition not fulfilled!')
+                        indeterminacy_lambda_pie(k,kk) = 1;
+                    end
+                    iter= iter+1;
+                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(lambda_grid)))
+                    %clear global
+                end
             end
-            iter= iter+1;
-            fprintf('Progress of Grid Search: %d / %d \n',iter,(length(kappa_pie_grid)*length(lambda_grid)))
-            %clear global
-        end
-    end
     
-    
-    iter = 0;
-    for k=1:length(lambda_grid)
-        lambda = lambda_grid(k);
-        save('params','lambda','-append')
-        [ys,check]  = CapU_steadystate;
-        K_ss        = ys(1);
-        b           = ys(55);
-        delta_c     = ys(56);
-        save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
-        for kk = 1:length(kappa_y_grid)
-            kappa_pie   = 0;
-            kappa_pieW  = 0;
-            kappa_y     = kappa_y_grid(kk);
-            kappa_prem  = 0;
-            rho         = 0;
-            save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-            try
-                GK_Nom_CapU
-                temp = Wf;
-                indeterminacy_lambda_y(k,kk) = 0;
-            catch
-                disp('Blanchard Kahn condition not fulfilled!')
-                indeterminacy_lambda_y(k,kk) = 1;
-            end
-            iter= iter+1;
-            fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_y_grid)))
-        end
-    end
-    
-    
-    
-    iter = 0;
-    for k=1:length(lambda_grid)
-        lambda = lambda_grid(k);
-        save('params','lambda','-append')
-        [ys,check]  = CapU_steadystate;
-        K_ss        = ys(1);
-        b           = ys(55);
-        delta_c     = ys(56);
-        save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
-        for kk = 1:length(kappa_pieW_grid)
-            kappa_pie   = 0;
-            kappa_pieW  = kappa_pieW_grid(kk);
-            kappa_y     = 0;
-            kappa_prem  = 0;
-            rho         = 0;
-            save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
-            try
-                GK_Nom_CapU
-                temp = Wf;
-               indeterminacy_lambda_pieW(k,kk) = 0;
-            catch
-                disp('Blanchard Kahn condition not fulfilled!')
-                indeterminacy_lambda_pieW(k,kk) = 1;
-            end
-           iter= iter+1;
-           fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_pieW_grid)))
-         end
-     end
+%     
+%     iter = 0;
+%             for k=1:length(lambda_grid)
+%                 lambda = lambda_grid(k);
+%                 save('params','lambda','-append')
+%                 [ys,check]  = CapU_steadystate;
+%                 K_ss        = ys(1);
+%                 b           = ys(55);
+%                 delta_c     = ys(56);
+%                 save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
+%                 for kk = 1:length(kappa_y_grid)
+%                     kappa_pie   = 0;
+%                     kappa_pieW  = 0;
+%                     kappa_y     = kappa_y_grid(kk);
+%                     kappa_prem  = 0;
+%                     rho         = 0;
+%                     save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+%                     try
+%                         GK_Nom_CapU
+%                         temp = Wf;
+%                         indeterminacy_lambda_y(k,kk) = 0;
+%                     catch
+%                         disp('Blanchard Kahn condition not fulfilled!')
+%                         indeterminacy_lambda_y(k,kk) = 1;
+%                     end
+%                     iter= iter+1;
+%                     fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_y_grid)))
+%                 end
+%             end
+%     
+%     
+%     
+%             iter = 0;
+%             for k=1:length(lambda_grid)
+%                 lambda = lambda_grid(k);
+%                 save('params','lambda','-append')
+%                 [ys,check]  = CapU_steadystate;
+%                 K_ss        = ys(1);
+%                 b           = ys(55);
+%                 delta_c     = ys(56);
+%                 save('params','K_ss','b','delta_c','lambda','irf_plot','-append');
+%                 for kk = 1:length(kappa_pieW_grid)
+%                     kappa_pie   = 0;
+%                     kappa_pieW  = kappa_pieW_grid(kk);
+%                     kappa_y     = 0;
+%                     kappa_prem  = 0;
+%                     rho         = 0;
+%                     save('params','kappa_pie','kappa_pieW','kappa_y','lambda','rho','kappa_prem','-append');
+%                     try
+%                         GK_Nom_CapU
+%                         temp = Wf;
+%                        indeterminacy_lambda_pieW(k,kk) = 0;
+%                     catch
+%                         disp('Blanchard Kahn condition not fulfilled!')
+%                         indeterminacy_lambda_pieW(k,kk) = 1;
+%                     end
+%                    iter= iter+1;
+%                    fprintf('Progress of Grid Search: %d / %d \n',iter,(length(lambda_grid)*length(kappa_pieW_grid)))
+%                  end
+%              end
              
-    d1=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
-    [X,Y] = meshgrid(lambda_grid,kappa_pie_grid');
-    surf(X,Y,indeterminacy_lambda_pie);
-    rotate3d on
-    axis tight
-    title('Determinancy Inflation Coefficient','interpreter','latex', 'FontSize', 16)
-    xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
-    ylabel('\lambda','interpreter','latex', 'FontSize', 16)
-    xt = get(gca, 'XTick');
-    %yt = get(gca, 'YTick');
-    set(gca, 'FontSize', 16)
-    %zlabel('Welfare')
-    az = 0;
-    el = 90;
-    view(az, el);
-    colormap colorcube;
-    saveas(d1,'Det_Lambda_Pie','fig')
-    saveas(d1,'Det_Lambda_Pie','eps')
-     
-    d2=figure('Name','Determinancy Lambda Y','NumberTitle','off');
-    [X,Y] = meshgrid(lambda_grid,kappa_y_grid');
-    surf(X,Y,indeterminacy_lambda_y);
-    rotate3d on
-    axis tight
-    title('Determinancy Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
-    xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
-    ylabel('\lambda','interpreter','latex', 'FontSize', 16)
-    xt = get(gca, 'XTick');
-    %yt = get(gca, 'YTick');
-    set(gca, 'FontSize', 16)
-    %zlabel('Welfare')
-    az = 0;
-    el = 90;
-    view(az, el);
-    colormap colorcube;
-    saveas(d2,'Det_Lambda_Y','fig')
-    saveas(d2,'Det_Lambda_Y','eps')
-     
-    d3=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
-    [X,Y] = meshgrid(lambda_grid,kappa_pieW_grid');
-    surf(X,Y,indeterminacy_lambda_pieW);
-    rotate3d on
-    axis tight
-    title('Determinancy Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
-    xlabel('\kappa_\pi_{W}','interpreter','latex', 'FontSize', 16)
-    ylabel('\lambda','interpreter','latex', 'FontSize', 16)
-    xt = get(gca, 'XTick');
-    %yt = get(gca, 'YTick');
-    set(gca, 'FontSize', 16)
-    %zlabel('Welfare')
-    az = 0;
-    el = 90;
-    view(az, el);
-    colormap colorcube;
-    saveas(d3,'Det_Lambda_PieW','fig')
-    saveas(d3,'Det_Lambda_PieW','eps')
+        d1=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
+        [X,Y] = meshgrid(kappa_pie_grid,lambda_grid);
+        surf(X,Y,indeterminacy_lambda_pie,'LineStyle','none');
+        rotate3d on
+        axis tight
+        title('Determinancy Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+        xlabel('$\kappa_\pi$','interpreter','latex', 'FontSize', 16)
+        ylabel('$\lambda$','interpreter','latex', 'FontSize', 16)
+        xt = get(gca, 'XTick');
+        %yt = get(gca, 'YTick');
+        set(gca, 'FontSize', 16)
+        %zlabel('Welfare')
+         az = 0;
+         el = 90;
+         view(az, el);
+         colormap colorcube;
+         saveas(d1,'Det_Lambda_Pie','fig')
+         saveas(d1,'Det_Lambda_Pie','eps')
+         
+%         d2=figure('Name','Determinancy Lambda Y','NumberTitle','off');
+%         [X,Y] = meshgrid(lambda_grid,kappa_y_grid');
+%         surf(X,Y,indeterminacy_lambda_y);
+%         rotate3d on
+%         axis tight
+%         title('Determinancy Output Gap Coefficient','interpreter','latex', 'FontSize', 16)
+%         xlabel('\kappa_\pi','interpreter','latex', 'FontSize', 16)
+%         ylabel('\lambda','interpreter','latex', 'FontSize', 16)
+%         xt = get(gca, 'XTick');
+%         %yt = get(gca, 'YTick');
+%         set(gca, 'FontSize', 16)
+%         %zlabel('Welfare')
+%          az = 0;
+%          el = 90;
+%          view(az, el);
+%          colormap colorcube;
+%          saveas(d1,'Det_Lambda_Y','fig')
+%          saveas(d1,'Det_Lambda_Y','eps')
+         
+%         d3=figure('Name','Determinancy Lambda Pie','NumberTitle','off');
+%         [X,Y] = meshgrid(lambda_grid,kappa_pieW_grid');
+%         surf(X,Y,indeterminacy_lambda_pieW);
+%         rotate3d on
+%         axis tight
+%         title('Determinancy Wage Inflation Coefficient','interpreter','latex', 'FontSize', 16)
+%         xlabel('\kappa_\pi_{W}','interpreter','latex', 'FontSize', 16)
+%         ylabel('\lambda','interpreter','latex', 'FontSize', 16)
+%         xt = get(gca, 'XTick');
+%         %yt = get(gca, 'YTick');
+%         set(gca, 'FontSize', 16)
+%         %zlabel('Welfare')
+%          az = 0;
+%          el = 90;
+%          view(az, el);
+%          colormap colorcube;
+%          saveas(d1,'Det_Lambda_PieW','fig')
+%          saveas(d1,'Det_Lambda_PieW','eps')
     
     
      % kappa_pie_grid  = -1.5:0.125:5;
@@ -683,7 +684,7 @@ if irf_plot==1
     kappa_prem  = param_opt(4);% 1.2
     rho         = param_opt(5);
     kappa_x     = param_opt(6);
-    
+%     
 %     kappa_pie   = 10; % 1.5
 %     kappa_pieW  = 0;
 %     kappa_y     = 0; %0.125
@@ -692,7 +693,7 @@ if irf_plot==1
 %     kappa_x       = 0;
 %     gamma_w =0;
 %     gammaW =0;
-    irf_plot = 1;
+     irf_plot = 1;
     save('params','gamma_w','gammaW','K_ss','b','delta_c','kappa_pie','kappa_x','kappa_pieW','kappa_y','kappa_prem','rho','irf_plot','-append');
     dynare GK_Nom_CapU noclearall
     irf.sim(:,1)=struct2cell(oo_.irfs);
@@ -704,7 +705,7 @@ if irf_plot==1
     kappa_pie   = 1.5; % 1.5
     kappa_pieW  = 0;
     kappa_y     = 0.125; %0.125
-    kappa_prem  = 0;% 1.2
+    kappa_prem  = 0;% 
     rho         = 0.8; % 0.8
     kappa_x       = 0;
     irf_plot = 1;
@@ -716,7 +717,7 @@ if irf_plot==1
     %cd('D:\GK\GK_CapU_Flex')
     %clear params
     load params
-    kappa_pie   = 1.71;
+    kappa_pie   = 1.1;
     kappa_pieW  = 0;
     kappa_y     = 0;
     kappa_prem  = 0;% 1.2
@@ -796,134 +797,134 @@ if irf_plot==1
 
     % h2=figure('Name','Capital Quality Shock Bench','NumberTitle','off');
     % for j=length(irf.name)+1:2*length(irf.name)
-    % 	subaxis(5,3,j-length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
-    % 	hold on
-    % 	for jj=1:(length(gamma_ws)*length(gamma_s))
-    % 		if jj==3
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',1.5)
-    %  		elseif jj==4
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',1.5)
-    %  		elseif jj==1
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',1.5)
-    %  		else
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r--')
-    %  		end;
-    %  		line([0 irf.periods],[0 0],'Color','k')
-    % 	end
-    % 	axis tight
-    % 	hold off
-    % 	%xlabel('quarters','interpreter','latex', 'FontSize', 12)
-    % 	set(gca,'fontsize',6)
-    % 	if j<length(irf.name)+12
-    %  		ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 8)
-    %  	else
-    %  		ylabel('dev. from St.St','interpreter','latex', 'FontSize', 8)
-    %  	end;
-    %  	title(irf.name(j-length(irf.name)),'interpreter','latex', 'FontSize', 8)
-    %  	%l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
-    %  	%set(l,'Interpreter','latex','FontSize',10);
-    %  	%l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
-    %  	%set(l,'interpreter','latex','FontSize',10);
+    %   subaxis(5,3,j-length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
+    %   hold on
+    %   for jj=1:(length(gamma_ws)*length(gamma_s))
+    %       if jj==3
+    %           plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',1.5)
+    %       elseif jj==4
+    %           plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',1.5)
+    %       elseif jj==1
+    %           plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',1.5)
+    %       else
+    %           plot(1:irf.periods,irf.sim{j,jj},'r--')
+    %       end;
+    %       line([0 irf.periods],[0 0],'Color','k')
+    %   end
+    %   axis tight
+    %   hold off
+    %   %xlabel('quarters','interpreter','latex', 'FontSize', 12)
+    %   set(gca,'fontsize',6)
+    %   if j<length(irf.name)+12
+    %       ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 8)
+    %   else
+    %       ylabel('dev. from St.St','interpreter','latex', 'FontSize', 8)
+    %   end;
+    %   title(irf.name(j-length(irf.name)),'interpreter','latex', 'FontSize', 8)
+    %   %l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
+    %   %set(l,'Interpreter','latex','FontSize',10);
+    %   %l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
+    %   %set(l,'interpreter','latex','FontSize',10);
     %  end
     % saveas(h2,'GK_gov_ksi_Bench','fig')
     % saveas(h2,'GK_gov_ksi_Bench','png')
     
     % h3=figure('Name','Monetary Policy Shock Bench','NumberTitle','off');
     % for j=2*length(irf.name)+1:3*length(irf.name)
-    % 	subaxis(5,3,j-2*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
-    % 	hold on
-    % 	for jj=1:(length(gamma_ws)*length(gamma_s))
-    % 		if jj==3
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
-    %  		elseif jj==4
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
-    %  		elseif jj==1
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
-    %  		else
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r--')
-    %  		end;
-    %  		line([0 irf.periods],[0 0],'Color','k')
-    % 	end
-    % 	axis tight
-    % 	hold off
-    % 	%xlabel('quarters','interpreter','latex', 'FontSize', 12)
-    % 	set(gca,'fontsize',6)
-    % 	if j<2*length(irf.name)+12
-    %  		ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 8)
-    %  	else
-    %  		ylabel('dev. from St.St','interpreter','latex', 'FontSize', 8)
-    %  	end;
-    %  	title(irf.name(j-2*length(irf.name)),'interpreter','latex', 'FontSize', 8)
-    %  	%l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
-    %  	%set(l,'Interpreter','latex','FontSize',10);
-    %  	%l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
-    %  	%set(l,'interpreter','latex','FontSize',10);
+    %   subaxis(5,3,j-2*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
+    %   hold on
+    %   for jj=1:(length(gamma_ws)*length(gamma_s))
+    %       if jj==3
+    %           plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
+    %       elseif jj==4
+    %           plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
+    %       elseif jj==1
+    %           plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
+    %       else
+    %           plot(1:irf.periods,irf.sim{j,jj},'r--')
+    %       end;
+    %       line([0 irf.periods],[0 0],'Color','k')
+    %   end
+    %   axis tight
+    %   hold off
+    %   %xlabel('quarters','interpreter','latex', 'FontSize', 12)
+    %   set(gca,'fontsize',6)
+    %   if j<2*length(irf.name)+12
+    %       ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 8)
+    %   else
+    %       ylabel('dev. from St.St','interpreter','latex', 'FontSize', 8)
+    %   end;
+    %   title(irf.name(j-2*length(irf.name)),'interpreter','latex', 'FontSize', 8)
+    %   %l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
+    %   %set(l,'Interpreter','latex','FontSize',10);
+    %   %l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
+    %   %set(l,'interpreter','latex','FontSize',10);
     %  end
     % saveas(h3,'GK_gov_eps_m_Bench','fig')
     % saveas(h3,'GK_gov_eps_m_Bench','jpg')
     
     % h4=figure('Name','Wealth Shock Bench','NumberTitle','off');
     % for j=3*length(irf.name)+1:4*length(irf.name)
-    % 	subaxis(5,3,j-3*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
-    % 	hold on
-    % 	for jj=1:(length(gamma_ws)*length(gamma_s))
-    % 		if jj==3
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
-    %  		elseif jj==4
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
-    %  		elseif jj==1
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
-    %  		else
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r--')
-    %  		end;
-    %  		line([0 irf.periods],[0 0],'Color','k')
-    % 	end
-    % 	axis tight
-    % 	hold off
-    % 	%xlabel('quarters','interpreter','latex', 'FontSize', 12)
-    % 	if j<3*length(irf.name)+10
-    %  		ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 10)
-    %  	else
-    %  		ylabel('dev. from St.St','interpreter','latex', 'FontSize', 10)
-    %  	end;
-    %  	title(irf.name(j-3*length(irf.name)),'interpreter','latex', 'FontSize', 12)
-    %  	%l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
-    %  	%set(l,'Interpreter','latex','FontSize',10);
-    %  	%l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
-    %  	%set(l,'interpreter','latex','FontSize',10);
+    %   subaxis(5,3,j-3*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
+    %   hold on
+    %   for jj=1:(length(gamma_ws)*length(gamma_s))
+    %       if jj==3
+    %           plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
+    %       elseif jj==4
+    %           plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
+    %       elseif jj==1
+    %           plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
+    %       else
+    %           plot(1:irf.periods,irf.sim{j,jj},'r--')
+    %       end;
+    %       line([0 irf.periods],[0 0],'Color','k')
+    %   end
+    %   axis tight
+    %   hold off
+    %   %xlabel('quarters','interpreter','latex', 'FontSize', 12)
+    %   if j<3*length(irf.name)+10
+    %       ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 10)
+    %   else
+    %       ylabel('dev. from St.St','interpreter','latex', 'FontSize', 10)
+    %   end;
+    %   title(irf.name(j-3*length(irf.name)),'interpreter','latex', 'FontSize', 12)
+    %   %l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
+    %   %set(l,'Interpreter','latex','FontSize',10);
+    %   %l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
+    %   %set(l,'interpreter','latex','FontSize',10);
     %  end
     % saveas(h4,'GK_gov_eps_w','fig')
     % saveas(h4,'GK_gov_eps_w','jpg')
     
     % h5=figure('Name','Wage Mark-up Shock Bench','NumberTitle','off');
     % for j=4*length(irf.name)+1:5*length(irf.name)
-    % 	subaxis(5,3,j-4*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
-    % 	hold on
-    % 	for jj=1:(length(gamma_ws)*length(gamma_s))
-    % 		if jj==3
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
-    %  		elseif jj==4
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
-    %  		elseif jj==1
-    %  			plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
-    %  		else
-    %  			plot(1:irf.periods,irf.sim{j,jj},'r--')
-    %  		end;
-    %  		line([0 irf.periods],[0 0],'Color','k')
-    % 	end
-    % 	axis tight
-    % 	hold off
-    % 	xlabel('quarters','interpreter','latex', 'FontSize', 12)
-    % 	if j<4*length(irf.name)+10
-    %  		ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 10)
-    %  	else
-    %  		ylabel('dev. from St.St','interpreter','latex', 'FontSize', 10)
-    %  	end;
-    %  	title(irf.name(j-4*length(irf.name)),'interpreter','latex', 'FontSize', 12)
-    %  	%l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
-    %  	%set(l,'Interpreter','latex','FontSize',10);
-    %  	%l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
-    %  	%set(l,'interpreter','latex','FontSize',10);
+    %   subaxis(5,3,j-4*length(irf.name),'SpacingHoriz', spaceH,'SpacingVert',spaceV, 'PL',padding,'PR',padding,'mt',marTop,'mb',marBot,'ML',marginL,'MR',margin);
+    %   hold on
+    %   for jj=1:(length(gamma_ws)*length(gamma_s))
+    %       if jj==3
+    %           plot(1:irf.periods,irf.sim{j,jj},'b:','LineWidth',2)
+    %       elseif jj==4
+    %           plot(1:irf.periods,irf.sim{j,jj},'r','LineWidth',2)
+    %       elseif jj==1
+    %           plot(1:irf.periods,irf.sim{j,jj},'b--','LineWidth',2)
+    %       else
+    %           plot(1:irf.periods,irf.sim{j,jj},'r--')
+    %       end;
+    %       line([0 irf.periods],[0 0],'Color','k')
+    %   end
+    %   axis tight
+    %   hold off
+    %   xlabel('quarters','interpreter','latex', 'FontSize', 12)
+    %   if j<4*length(irf.name)+10
+    %       ylabel('$ \% $dev. from St.St','interpreter','latex', 'FontSize', 10)
+    %   else
+    %       ylabel('dev. from St.St','interpreter','latex', 'FontSize', 10)
+    %   end;
+    %   title(irf.name(j-4*length(irf.name)),'interpreter','latex', 'FontSize', 12)
+    %   %l=legend('$\gamma_w=0$','$\gamma_w=0.8$');
+    %   %set(l,'Interpreter','latex','FontSize',10);
+    %   %l=legend('$\gamma_w1=0$','$\gamma_w1=0.8$','$\gamma_w2=0$','$\gamma_w2=0.8$','$\gamma_w3=0$','$\gamma_w3=0.8$');
+    %   %set(l,'interpreter','latex','FontSize',10);
     %  end
     % saveas(h5,'GK_gov_eps_markup','fig')
     % saveas(h5,'GK_gov_eps_markup','jpg')
@@ -1163,7 +1164,7 @@ if WFcost==1
     
     
     
-    kappa_pie   = 1.5;
+    kappa_pie   = 1.75;
     kappa_y     = 0;
     kappa_pieW  = 0;
     kappa_prem  = 0;
@@ -1355,7 +1356,7 @@ if WFcost==1
     
     for j=1:size(WelfOutput,2)
         WelfCost(j) =100*(1-exp((WelfOutput(1,j)-WelfOutput(1,10))*(1-betta)));
-    end;
+    end
     
     WelfareCosts =WelfCost';
     T = table(WelfareCosts,'RowNames',Model)
@@ -1364,6 +1365,154 @@ if WFcost==1
     
     
     %pause;
+    
+    
+    kappa_pie   = param_opt(1);
+    %kappa_pie   = 0;
+    kappa_pieW  = param_opt(2);
+    kappa_y     = param_opt(3);
+    kappa_prem  = param_opt(4);% 1.2
+    rho         = param_opt(5);
+    kappa_x       = param_opt(6);
+    save('params','K_ss','b','delta_c','kappa_x','kappa_pie','kappa_pieW','kappa_y','kappa_prem','rho','irf_plot','-append');
+    dynare GK_Nom_CapU noclearall
+    %WelfOutput(1,10)=oo_.mean(1,1);
+    W_pos=strmatch('Wf',M_.endo_names,'exact');
+    WelfOpt=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
+    
+    steps   = 25;
+    k       = 0;
+    kappa_pie_grid  = 0:5/steps:5;
+    kappa_pieW_grid = 0:5/steps:5;
+    kappa_y_grid    = 0:5/steps:5;
+    rho_grid        = 0:1/steps:1;
+    kappa_x_grid    = 0:5/steps:5;
+    WelfCost_pie_pieW        = zeros(length(kappa_pie_grid),length(kappa_pieW_grid));
+    WelfCost_pie_y        = zeros(length(kappa_pie_grid),length(kappa_y_grid));
+    WelfCost_pie_x        = zeros(length(kappa_pie_grid),length(kappa_x_grid));
+    
+    kappa_pie       = 1.5;
+    kappa_pieW      = 1.5;
+    kappa_y         = 0;
+    rho             = 0;
+    kappa_x         = 0;
+    
+    save('params','kappa_x','kappa_pie','kappa_pieW','kappa_y','rho','-append')
+    
+    for k=1:length(kappa_pie_grid)
+        kappa_pie = kappa_pie_grid(k);
+        for kk = 1:length(kappa_pieW_grid)
+            kappa_pieW = kappa_pieW_grid(kk);
+            save('params','kappa_pie','kappa_pieW','-append')
+            try
+                GK_Nom_CapU
+                %W_pos=strmatch('Wf',M_.endo_names,'exact');
+                WelfTemp=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
+                WelfCost_pie_pieW(k,kk) =100*(1-exp((WelfTemp-WelfOpt)*(1-betta)));
+            catch
+                disp('Violation Blanchard Kahn condition')
+            end
+        end
+    end
+    
+    codefolcer=cd('Figures\Sticky Wages and Sticky Prices\Welfare_Costs');
+    
+    wc1=figure('Name','Welfare Costs Inflation and Wage Inflation','NumberTitle','off');
+    [X,Y] = meshgrid(kappa_pieW_grid,kappa_pie_grid);
+    surf(X,Y,WelfCost_pie_pieW');
+    rotate3d on
+    axis tight
+    title('Welfare Costs Inflation and Wage Inflation','interpreter','latex', 'FontSize', 12)
+    xlabel('\kappa_{\pi}')
+    ylabel('\kappa_{\pi_W}')
+    saveas(wc1,'Welf_Cost_Pie_PieW','fig')
+    saveas(wc1,'Welf_Cost_Pie_PieW','epsc')
+       
+    save wc_pie_pieW kappa_pieW_grid kappa_pie_grid WelfCost_pie_pieW
+    
+    cd(codefolder)
+    
+    kappa_pie       = 1.5;
+    kappa_pieW      = 0;
+    kappa_y         = 1.5;
+    rho             = 0;
+    kappa_x         = 0;
+    
+    save('params','kappa_x','kappa_pie','kappa_pieW','kappa_y','rho','-append')
+    
+    for k=1:length(kappa_pie_grid)
+        kappa_pie = kappa_pie_grid(k);
+        for kk = 1:length(kappa_y_grid)
+            kappa_y = kappa_y_grid(kk);
+            save('params','kappa_pie','kappa_y','-append')
+            try
+                GK_Nom_CapU
+                %W_pos=strmatch('Wf',M_.endo_names,'exact');
+                WelfTemp=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
+                WelfCost_pie_y(k,kk) =100*(1-exp((WelfTemp-WelfOpt)*(1-betta)));
+            catch
+                disp('Violation Blanchard Kahn condition')
+            end
+        end
+    end
+    
+    cd('Figures\Sticky Wages and Sticky Prices\Welfare_Costs');
+    wc2=figure('Name','Welfare Costs Inflation and Output Gap','NumberTitle','off');
+    [X,Y] = meshgrid(kappa_y_grid,kappa_pie_grid);
+    surf(X,Y,WelfCost_pie_y');
+    rotate3d on
+    axis tight
+    title('Welfare Costs Inflation and Output Gap','interpreter','latex', 'FontSize', 12)
+    xlabel('\kappa_{\pi}')
+    ylabel('\kappa_{y}')
+    saveas(wc2,'Welf_Cost_Pie_y','fig')
+    saveas(wc2,'Welf_Cost_Pie_y','epsc')
+    
+    save wc_pie_y kappa_y_grid kappa_pie_grid WelfCost_pie_y
+    
+    cd(codefolder)
+    
+    kappa_pie       = 1.5;
+    kappa_pieW      = 0;
+    kappa_y         = 0;
+    rho             = 0;
+    kappa_x         = 0;
+    
+    save('params','kappa_x','kappa_pie','kappa_pieW','kappa_y','rho','-append')
+    
+    for k=1:length(kappa_pie_grid)
+        kappa_pie = kappa_pie_grid(k);
+        for kk = 1:length(kappa_x_grid)
+            kappa_x = kappa_x_grid(kk);
+            save('params','kappa_pie','kappa_x','-append')
+            try
+                GK_Nom_CapU
+                %W_pos=strmatch('Wf',M_.endo_names,'exact');
+                WelfTemp=oo_.dr.ys(W_pos)+0.5*oo_.dr.ghs2(oo_.dr.inv_order_var(W_pos));
+                WelfCost_pie_x(k,kk) =100*(1-exp((WelfTemp-WelfOpt)*(1-betta)));
+            catch
+                disp('Violation Blanchard Kahn condition')
+            end
+        end
+    end
+    
+    cd('Figures\Sticky Wages and Sticky Prices\Welfare_Costs');
+    
+    wc3=figure('Name','Welfare Costs Inflation and Asset Growth','NumberTitle','off');
+    [X,Y] = meshgrid(kappa_x_grid,kappa_pie_grid);
+    surf(X,Y,WelfCost_pie_x');
+    rotate3d on
+    axis tight
+    title('Welfare Costs Inflation and Asset Growth','interpreter','latex', 'FontSize', 12)
+    xlabel('\kappa_{\pi}')
+    ylabel('\kappa_{x}')
+    saveas(wc3,'Welf_Cost_Pie_x','fig')
+    saveas(wc3,'Welf_Cost_Pie_x','epsc')
+    
+    save wc_pie_x kappa_x_grid kappa_pie_grid WelfCost_pie_x
+    
+    cd(codefolder)
+    
 else
     disp('No welfare costs are calculated!')
     
@@ -2147,7 +2296,7 @@ if pol_front == 1
     plot(frontier_PiWY(1:end,1),frontier_PiWY(1:end,3),'g+','LineWidth',2,'MarkerSize',5)
     axis tight
     %title('Policy Frontier Benchmark TR','FontSize', 12)
-l=legend('Stab. \Pi \Pi^W','Stab. \Pi Y_{gap}','Stab. \Pi^W Y_{gap}');%,'fontweight','bold','FontSize', 12);
+    l=legend('Stab. \Pi \Pi^W','Stab. \Pi Y_{gap}','Stab. \Pi^W Y_{gap}');%,'fontweight','bold','FontSize', 12);
     l.FontWeight = 'bold';
     l.FontSize = 12;    xlabel('\sigma^2(\Pi)','fontweight','bold','FontSize', 12)
     ylabel('\sigma^2(\Pi^{W})','fontweight','bold','FontSize', 12)
